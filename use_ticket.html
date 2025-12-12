@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>うたプレ チケット使用ページ</title>
+  <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+</head>
+<body>
+  <h1>チケット使用ページ</h1>
+  <p>お手元のチケットに記載されているシリアル番号を入力してください。</p>
+
+  <input type="text" id="serialInput" placeholder="例）UTP-TEST-0001" style="width:280px;" />
+  <button id="useTicketButton">このチケットを使う</button>
+
+  <p id="message" style="color:red; margin-top:10px;"></p>
+
+  <script>
+    // ▼ ▼ ▼ あなたの Supabase プロジェクト情報（埋め込み済み） ▼ ▼ ▼
+    const SUPABASE_URL = "https://nnexyynjimfpdcqeuxgn.supabase.co";
+    const SUPABASE_ANON_KEY =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5uZXh5eW5qaW1mcGRjcWV1eGduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0NDAxMzAsImV4cCI6MjA4MTAxNjEzMH0.ZWAsrtzHAf0A9wDAfXPUKTlwQ92G1KhgUWFAyLULl9c";
+    // ▲ ▲ ▲ 変更不要・そのまま使える ▲ ▲ ▲
+
+    const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const input = document.getElementById("serialInput");
+    const button = document.getElementById("useTicketButton");
+    const message = document.getElementById("message");
+
+    button.addEventListener("click", async () => {
+      const serial = input.value.trim();
+      message.textContent = "";
+
+      if (!serial) {
+        message.style.color = "red";
+        message.textContent = "シリアル番号を入力してください。";
+        return;
+      }
+
+      message.style.color = "black";
+      message.textContent = "照合中です…";
+
+      try {
+        console.log("入力されたシリアル:", serial);
+
+        const { data, error } = await supa
+          .from("tickets")
+          .select("access_token")
+          .eq("serial", serial)
+          .limit(1);
+
+        if (error) {
+          console.error("Supabase error:", error);
+          message.style.color = "red";
+          message.textContent = "エラーが発生しました：" + error.message;
+          return;
+        }
+
+        if (!data || data.length === 0) {
+          message.style.color = "red";
+          message.textContent = "このシリアル番号のチケットが見つかりませんでした。";
+          return;
+        }
+
+        const token = data[0].access_token;
+        console.log("取得したtoken:", token);
+
+        // デバッグ確認用
+        // alert("取得した token： " + token);
+
+        // ★ 本番マイページ utapre_mypage.html に遷移 ★
+        const targetUrl = "./utapre_mypage.html?token=" + encodeURIComponent(token);
+        window.location.href = targetUrl;
+
+      } catch (e) {
+        console.error("JS error:", e);
+        message.style.color = "red";
+        message.textContent = "スクリプトエラーが発生しました：" + e.message;
+      }
+    });
+  </script>
+</body>
+</html>
