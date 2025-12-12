@@ -10,68 +10,34 @@
 
   <style>
     :root {
-      --bg: #f5f5f7;
       --card-bg: #ffffff;
       --accent: #ff6fb5;
-      --accent-soft: #ffe3f1;
-      --accent-deep: #ff3f98;
       --text-main: #222222;
       --text-sub: #666666;
       --border-soft: #e0e0e5;
       --radius-xl: 20px;
       --shadow-soft: 0 10px 24px rgba(0,0,0,0.08);
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: radial-gradient(circle at top, #ffeef7 0, #f5f5f7 45%, #f5f5f7 100%);
       color: var(--text-main);
       min-height: 100vh;
     }
-
-    .app {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 24px 16px 32px;
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
+    .app { max-width: 900px; margin: 0 auto; padding: 24px 16px 32px; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .brand { display: flex; align-items: center; gap: 10px; }
     .brand-logo {
-      width: 32px;
-      height: 32px;
-      border-radius: 12px;
+      width: 32px; height: 32px; border-radius: 12px;
       background: conic-gradient(from 180deg, #ff6fb5, #ffc36f, #6fb7ff, #ff6fb5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-weight: 800;
-      font-size: 18px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 800; font-size: 18px;
       box-shadow: 0 8px 20px rgba(0,0,0,0.16);
     }
-
     .brand-title { font-size: 18px; font-weight: 700; }
     .brand-sub { font-size: 11px; color: var(--text-sub); }
-
-    .header-right {
-      text-align: right;
-      font-size: 11px;
-      color: var(--text-sub);
-    }
+    .header-right { text-align: right; font-size: 11px; color: var(--text-sub); }
 
     .card {
       background: var(--card-bg);
@@ -81,144 +47,57 @@
       border: 1px solid rgba(255,255,255,0.9);
       margin-bottom: 16px;
     }
-
     .card-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
     .card-sub { font-size: 12px; color: var(--text-sub); margin-bottom: 12px; }
 
-    .field {
-      margin-bottom: 12px;
-      font-size: 12px;
-    }
-
-    .field label {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 4px;
-    }
-
+    .field { margin-bottom: 12px; font-size: 12px; }
+    .field label { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
     .field label span { font-weight: 500; }
     .field label small { font-size: 10px; color: var(--text-sub); }
 
-    input[type="text"],
-    textarea,
-    select {
-      width: 100%;
-      padding: 7px 9px;
-      border-radius: 10px;
-      border: 1px solid var(--border-soft);
-      font-size: 12px;
-      outline: none;
-      background: rgba(255,255,255,0.9);
+    input[type="text"], textarea {
+      width: 100%; padding: 7px 9px; border-radius: 10px;
+      border: 1px solid var(--border-soft); font-size: 12px;
+      outline: none; background: rgba(255,255,255,0.9);
     }
+    textarea { min-height: 70px; resize: vertical; }
+    input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 1px rgba(255,111,181,0.2); }
 
-    textarea {
-      min-height: 70px;
-      resize: vertical;
-    }
-
-    input:focus,
-    textarea:focus,
-    select:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(255,111,181,0.2);
-    }
-
-    .row-2 {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 10px;
-    }
+    .row-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
 
     .btn {
-      border: none;
-      border-radius: 999px;
-      padding: 8px 16px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+      border: none; border-radius: 999px; padding: 8px 16px;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
     }
+    .btn-primary { background: linear-gradient(90deg, #ff6fb5, #ffc36f); color: #fff; box-shadow: 0 6px 14px rgba(0,0,0,0.16); }
+    .btn-ghost { background: rgba(255,255,255,0.9); border: 1px solid var(--border-soft); color: var(--text-sub); }
+    .btn-sm { padding: 4px 10px; font-size: 11px; }
 
-    .btn-primary {
-      background: linear-gradient(90deg, #ff6fb5, #ffc36f);
-      color: #fff;
-      box-shadow: 0 6px 14px rgba(0,0,0,0.16);
-    }
-
-    .btn-ghost {
-      background: rgba(255,255,255,0.9);
-      border: 1px solid var(--border-soft);
-      color: var(--text-sub);
-    }
-
-    .btn-sm {
-      padding: 4px 10px;
-      font-size: 11px;
-    }
-
-    .form-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 8px;
-    }
-
-    .small-text {
-      font-size: 11px;
-      color: var(--text-sub);
-    }
+    .form-footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .small-text { font-size: 11px; color: var(--text-sub); }
 
     .result-box {
-      font-size: 12px;
-      line-height: 1.7;
-      border-radius: 14px;
-      background: #fafafe;
-      padding: 10px 12px;
-      border: 1px dashed #dedeee;
-      margin-top: 8px;
-      word-break: break-all;
+      font-size: 12px; line-height: 1.7;
+      border-radius: 14px; background: #fafafe;
+      padding: 10px 12px; border: 1px dashed #dedeee;
+      margin-top: 8px; word-break: break-all;
     }
-
-    .result-label {
-      font-size: 11px;
-      color: var(--text-sub);
-    }
-
-    .result-value {
-      font-weight: 600;
-      margin-left: 4px;
-    }
-
+    .result-label { font-size: 11px; color: var(--text-sub); }
+    .result-value { font-weight: 600; margin-left: 4px; }
     code {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 11px;
-      background: #f1f1f7;
-      padding: 2px 4px;
-      border-radius: 4px;
+      font-size: 11px; background: #f1f1f7; padding: 2px 4px; border-radius: 4px;
     }
-
     .example-box {
-      margin-top: 8px;
-      padding: 8px 10px;
-      border-radius: 10px;
-      background: #fff;
-      border: 1px solid #ececf5;
-      font-size: 11px;
-      line-height: 1.7;
+      margin-top: 8px; padding: 8px 10px;
+      border-radius: 10px; background: #fff;
+      border: 1px solid #ececf5; font-size: 11px; line-height: 1.7;
     }
-
-    @media (max-width: 700px) {
-      .row-2 {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
+    @media (max-width: 700px) { .row-2 { grid-template-columns: minmax(0, 1fr); } }
   </style>
 </head>
+
 <body>
   <div class="app">
     <header>
@@ -238,8 +117,8 @@
     <section class="card">
       <div class="card-title">新しいチケットを発行する</div>
       <div class="card-sub">
-        BASE等で注文が入ったら、ここに情報を入力してチケットを1枚発行します。<br>
-        発行後、お客様には <strong>「①チケット使用ページURL」＋「②シリアル番号」</strong> を案内します。
+        発行後、お客様には <strong>「チケット使用ページURL」＋「シリアル番号」</strong> を案内します。<br>
+        （お客様は use_ticket.html でシリアル入力 → マイページへ）
       </div>
 
       <form id="ticketForm">
@@ -249,61 +128,40 @@
             <small>印字されるチケットコード（重複しないように）</small>
           </label>
           <div class="row-2">
-            <input type="text" id="serialInput" placeholder="例）UTP-20241212-0001" />
-            <button type="button" class="btn btn-ghost btn-sm" id="generateSerialButton">
-              自動生成
-            </button>
+            <input type="text" id="serialInput" placeholder="例）UTP-20251212-0001" />
+            <button type="button" class="btn btn-ghost btn-sm" id="generateSerialButton">自動生成</button>
           </div>
         </div>
 
         <div class="field">
-          <label>
-            <span>チケットを使う人の名前</span>
-            <small>マイページのタイトル等に表示されます</small>
-          </label>
+          <label><span>チケットを使う人の名前</span><small>マイページに表示</small></label>
           <input type="text" id="userNameInput" placeholder="例）九重 玉藻" />
         </div>
 
         <div class="field">
-          <label>
-            <span>プレゼントしてくれた人の名前（任意）</span>
-            <small>「〇〇さんからのプレゼントです」に使えます</small>
-          </label>
+          <label><span>プレゼントしてくれた人の名前（任意）</span><small>表示用</small></label>
           <input type="text" id="giftFromInput" placeholder="例）おもちまる" />
         </div>
 
         <div class="row-2">
           <div class="field">
-            <label>
-              <span>プラン名</span>
-              <small>表示用の名前</small>
-            </label>
+            <label><span>プラン名</span><small>表示用</small></label>
             <input type="text" id="planNameInput" placeholder="例）歌ってみたMIXプラン" />
           </div>
           <div class="field">
-            <label>
-              <span>納期目安</span>
-              <small>マイページに表示されます</small>
-            </label>
+            <label><span>納期目安（任意）</span><small>表示用</small></label>
             <input type="text" id="planLeadTimeInput" placeholder="例）10〜14日程度" />
           </div>
         </div>
 
         <div class="field">
-          <label>
-            <span>プランの説明文（任意）</span>
-            <small>マイページの「チケット内容」に表示されます</small>
-          </label>
-          <textarea id="planDescriptionInput" placeholder="例）歌ってみた音源のMIX（ピッチ補正・タイミング調整込み）を1曲分制作します。"></textarea>
+          <label><span>プラン説明（任意）</span><small>表示用</small></label>
+          <textarea id="planDescriptionInput" placeholder="例）ピッチ補正・タイミング調整込みで1曲MIXします。"></textarea>
         </div>
 
         <div class="form-footer">
-          <button type="submit" class="btn btn-primary" id="createTicketButton">
-            チケットを発行する
-          </button>
-          <div class="small-text" id="formStatus">
-            必須：シリアル・チケットを使う人の名前・プラン名
-          </div>
+          <button type="submit" class="btn btn-primary" id="createTicketButton">チケットを発行する</button>
+          <div class="small-text" id="formStatus">必須：シリアル・チケットを使う人の名前・プラン名</div>
         </div>
       </form>
     </section>
@@ -311,104 +169,60 @@
     <section class="card" id="resultCard" style="display:none;">
       <div class="card-title">発行されたチケット情報</div>
       <div class="card-sub">
-        この内容を控えておいてください。<br>
         お客様には <strong>「チケット使用ページURL」＋「シリアル番号」</strong> を送ればOKです。
       </div>
-
-      <div class="result-box" id="resultBox">
-        <!-- JSで埋める -->
-      </div>
+      <div class="result-box" id="resultBox"></div>
     </section>
   </div>
 
   <script>
-    // ▼ Supabase プロジェクト情報 ▼
+    // ▼ Supabase プロジェクト情報（あなたのやつを固定） ▼
     const SUPABASE_URL = "https://nnexyynjimfpdcqeuxgn.supabase.co";
     const SUPABASE_ANON_KEY =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5uZXh5eW5qaW1mcGRjcWV1eGduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0NDAxMzAsImV4cCI6MjA4MTAxNjEzMH0.ZWAsrtzHAf0A9wDAfXPUKTlwQ92G1KhgUWFAyLULl9c";
 
-    // ▼ お客さんが最初にアクセスする「チケット使用ページ」のURL ▼
-    // ここは本番環境にあわせて書き換えてOK（例：https://utapre.com/use_ticket.html）
-    const TICKET_PORTAL_URL = "use_ticket.html";
+    // ▼ お客さんが最初にアクセスする「チケット使用ページURL」（本番URLを最初から入れてある） ▼
+    const TICKET_PORTAL_URL = "https://Utapre.github.io/utapre/use_ticket.html";
 
     const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    function initPage() {
-      const now = new Date();
-      document.getElementById("adminHint").textContent =
-        "発行したチケットは tickets テーブルに保存されます（" +
-        now.toLocaleString("ja-JP") +
-        "）";
-
-      document
-        .getElementById("generateSerialButton")
-        .addEventListener("click", onGenerateSerial);
-
-      document
-        .getElementById("ticketForm")
-        .addEventListener("submit", onCreateTicket);
-    }
-
-    // シリアル自動生成（例：UTP-20251212-1234）
     function generateSerial() {
       const d = new Date();
       const y = d.getFullYear();
       const m = String(d.getMonth() + 1).padStart(2, "0");
       const day = String(d.getDate()).padStart(2, "0");
-      const rand = Math.floor(Math.random() * 10000)
-        .toString()
-        .padStart(4, "0");
+      const rand = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
       return `UTP-${y}${m}${day}-${rand}`;
     }
 
-    function onGenerateSerial() {
-      const input = document.getElementById("serialInput");
-      input.value = generateSerial();
-    }
-
-    // アクセストークン（ランダム）生成
     function generateAccessToken(length = 32) {
-      const chars =
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
       let out = "";
       const array = new Uint32Array(length);
       if (window.crypto && window.crypto.getRandomValues) {
         window.crypto.getRandomValues(array);
-        for (let i = 0; i < length; i++) {
-          out += chars[array[i] % chars.length];
-        }
+        for (let i = 0; i < length; i++) out += chars[array[i] % chars.length];
       } else {
-        // crypto が使えない環境用フォールバック
-        for (let i = 0; i < length; i++) {
-          out += chars[Math.floor(Math.random() * chars.length)];
-        }
+        for (let i = 0; i < length; i++) out += chars[Math.floor(Math.random() * chars.length)];
       }
       return out;
     }
 
-    async function onCreateTicket(event) {
-      event.preventDefault();
+    async function onCreateTicket(e) {
+      e.preventDefault();
 
-      const serialEl = document.getElementById("serialInput");
-      const userNameEl = document.getElementById("userNameInput");
-      const giftFromEl = document.getElementById("giftFromInput");
-      const planNameEl = document.getElementById("planNameInput");
-      const planLeadTimeEl = document.getElementById("planLeadTimeInput");
-      const planDescriptionEl =
-        document.getElementById("planDescriptionInput");
+      const serial = document.getElementById("serialInput").value.trim();
+      const userName = document.getElementById("userNameInput").value.trim();
+      const giftFrom = document.getElementById("giftFromInput").value.trim();
+      const planName = document.getElementById("planNameInput").value.trim();
+      const planLeadTime = document.getElementById("planLeadTimeInput").value.trim();
+      const planDescription = document.getElementById("planDescriptionInput").value.trim();
+
       const statusEl = document.getElementById("formStatus");
       const submitBtn = document.getElementById("createTicketButton");
 
-      const serial = serialEl.value.trim();
-      const userName = userNameEl.value.trim();
-      const giftFrom = giftFromEl.value.trim();
-      const planName = planNameEl.value.trim();
-      const planLeadTime = planLeadTimeEl.value.trim();
-      const planDescription = planDescriptionEl.value.trim();
-
       if (!serial || !userName || !planName) {
-        statusEl.textContent =
-          "シリアル・チケットを使う人の名前・プラン名は必須です。";
+        statusEl.textContent = "シリアル・チケットを使う人の名前・プラン名は必須です。";
         return;
       }
 
@@ -416,102 +230,87 @@
       submitBtn.disabled = true;
 
       try {
-        // アクセス用トークン生成（裏で use_ticket.html が使う）
         const accessToken = generateAccessToken(32);
 
         const { data, error } = await supa
           .from("tickets")
           .insert({
-            serial: serial,
-            access_token: accessToken,
+            serial,
+            access_token: accessToken,   // 裏側用（ユーザーには見せない）
             user_name: userName,
             gift_from: giftFrom || null,
             plan_name: planName,
             plan_lead_time: planLeadTime || null,
             plan_description: planDescription || null,
-            status_step: 0, // 新規は「ヒアリング入力待ち」
+            status_step: 0
           })
           .select()
           .single();
 
         if (error) {
-          console.error("insert ticket error:", error);
-          statusEl.textContent =
-            "チケットの発行に失敗しました：" + error.message;
-          submitBtn.disabled = false;
+          console.error(error);
+          statusEl.textContent = "発行に失敗：" + error.message;
           return;
         }
 
         statusEl.textContent = "チケットを発行しました。";
         showResult(data);
-
-      } catch (e) {
-        console.error(e);
-        statusEl.textContent =
-          "不明なエラーが発生しました。時間をおいてお試しください。";
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "不明なエラーが発生しました。";
       } finally {
         submitBtn.disabled = false;
       }
     }
 
-    function showResult(ticketRow) {
+    function showResult(t) {
       const card = document.getElementById("resultCard");
       const box = document.getElementById("resultBox");
 
-      const portalUrl = TICKET_PORTAL_URL; // 相対でも絶対でもOK
-
-      const userName = ticketRow.user_name || "（お名前）";
-      const giftFrom = ticketRow.gift_from || "";
-      const planName = ticketRow.plan_name || "（プラン名）";
+      const userName = t.user_name || "（お名前）";
+      const giftFrom = t.gift_from || "";
+      const planName = t.plan_name || "（プラン名）";
 
       const giftText = giftFrom
         ? `${giftFrom}さんからのプレゼントとして、${userName}さん専用の「${planName}」チケットが発行されました。`
         : `${userName}さん専用の「${planName}」チケットが発行されました。`;
 
       box.innerHTML = `
-        <div>
-          <span class="result-label">チケットID：</span>
-          <span class="result-value">${ticketRow.id}</span>
-        </div>
-        <div>
-          <span class="result-label">シリアル番号：</span>
-          <span class="result-value">${ticketRow.serial}</span>
-        </div>
-        <div>
-          <span class="result-label">チケットを使う人：</span>
-          <span class="result-value">${ticketRow.user_name || "（未入力）"}</span>
-        </div>
-        <div>
-          <span class="result-label">プレゼントしてくれた人：</span>
-          <span class="result-value">${ticketRow.gift_from || "（未入力）"}</span>
-        </div>
-        <div>
-          <span class="result-label">プラン名：</span>
-          <span class="result-value">${ticketRow.plan_name || "（未設定）"}</span>
-        </div>
+        <div><span class="result-label">チケットID：</span><span class="result-value">${t.id}</span></div>
+        <div><span class="result-label">シリアル番号：</span><span class="result-value">${t.serial}</span></div>
+        <div><span class="result-label">チケットを使う人：</span><span class="result-value">${t.user_name || "（未入力）"}</span></div>
+        <div><span class="result-label">プレゼントしてくれた人：</span><span class="result-value">${t.gift_from || "（未入力）"}</span></div>
+        <div><span class="result-label">プラン名：</span><span class="result-value">${t.plan_name || "（未設定）"}</span></div>
 
         <div style="margin-top:8px;">
-          <span class="result-label">お客様に伝える内容のイメージ：</span>
+          <span class="result-label">お客様に送る文面（コピペ用）：</span>
           <div class="example-box">
             ${giftText}<br>
             下記のページにアクセスし、シリアル番号を入力してマイページへお進みください。<br><br>
             ■ チケット使用ページURL<br>
-            <code>${portalUrl}</code><br><br>
+            <code>${TICKET_PORTAL_URL}</code><br><br>
             ■ シリアル番号<br>
-            <code>${ticketRow.serial}</code>
+            <code>${t.serial}</code>
           </div>
-        </div>
-
-        <div style="margin-top:6px;" class="small-text">
-          ※ チケット使用ページURLは、実際の公開ドメインに合わせて <code>${portalUrl}</code> を書き換えてください。<br>
-          （例：<code>https://utapre.com/use_ticket.html</code> など）
         </div>
       `;
 
       card.style.display = "block";
+      card.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
-    document.addEventListener("DOMContentLoaded", initPage);
+    function init() {
+      document.getElementById("adminHint").textContent =
+        "GitHub Pages公開URLを案内します（" + new Date().toLocaleString("ja-JP") + "）";
+
+      document.getElementById("generateSerialButton").addEventListener("click", () => {
+        document.getElementById("serialInput").value = generateSerial();
+      });
+
+      document.getElementById("ticketForm").addEventListener("submit", onCreateTicket);
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
   </script>
 </body>
 </html>
