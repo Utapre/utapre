@@ -4,1014 +4,767 @@
   <meta charset="UTF-8" />
   <title>うたプレ マイページ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- supabase-js v2 UMD -->
   <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
   <style>
-    :root {
-      --bg: #f5f5f7;
-      --card-bg: #ffffff;
-      --accent: #ff6fb5;
-      --accent-soft: #ffe3f1;
-      --accent-deep: #ff3f98;
-      --text-main: #222222;
-      --text-sub: #666666;
-      --border-soft: #e0e0e5;
-      --radius-xl: 24px;
-      --shadow-soft: 0 12px 30px rgba(0,0,0,0.06);
+    :root{
+      --bg:#f6f6f9;
+      --card:#fff;
+      --text:#222;
+      --sub:#666;
+      --line:#e7e7ee;
+      --accent:#ff6fb5;
+      --accent2:#ffc36f;
+      --ok:#24a148;
+      --ng:#e11d48;
+      --radius:18px;
+      --shadow:0 10px 26px rgba(0,0,0,.08);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      color:var(--text);
+      background: radial-gradient(circle at top, #ffeef7 0, var(--bg) 45%, var(--bg) 100%);
+      min-height:100vh;
+    }
+    .wrap{max-width:980px;margin:0 auto;padding:18px 14px 40px}
+    header{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      margin-bottom:14px;
+    }
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{
+      width:34px;height:34px;border-radius:14px;
+      background:conic-gradient(from 180deg, #ff6fb5, #ffc36f, #6fb7ff, #ff6fb5);
+      box-shadow:0 10px 22px rgba(0,0,0,.18);
+      display:flex;align-items:center;justify-content:center;
+      color:#fff;font-weight:900;
+    }
+    .title{font-weight:800}
+    .sub{color:var(--sub);font-size:12px}
+    .pill{
+      font-size:11px;color:var(--sub);
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.8);
+      padding:6px 10px;border-radius:999px;
+      user-select:text;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    .grid{display:grid;grid-template-columns: 1.1fr .9fr;gap:14px}
+    @media (max-width:920px){ .grid{grid-template-columns:1fr} }
 
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #ffeef7 0, #f5f5f7 45%, #f5f5f7 100%);
-      color: var(--text-main);
-      min-height: 100vh;
+    .card{
+      background:var(--card);
+      border:1px solid rgba(255,255,255,.9);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:14px 14px;
+    }
+    .card h2{
+      margin:0 0 10px 0;
+      font-size:15px;
+    }
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .kv{display:grid;grid-template-columns: 140px 1fr;gap:8px; font-size:13px; padding:6px 0;border-bottom:1px dashed var(--line)}
+    .kv:last-child{border-bottom:none}
+    .k{color:var(--sub)}
+    .v{font-weight:600}
+    .badge{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 10px; border-radius:999px;
+      font-size:12px; border:1px solid var(--line);
+      background:#fafafe;
+    }
+    .dot{width:8px;height:8px;border-radius:999px;background:#bbb}
+    .dot.ok{background:var(--ok)}
+    .dot.ng{background:var(--ng)}
+    .dot.wait{background:#f59e0b}
+
+    .btn{
+      border:none; cursor:pointer;
+      border-radius:999px;
+      padding:9px 14px;
+      font-size:12px; font-weight:700;
+      display:inline-flex; align-items:center; gap:8px;
+    }
+    .btn.primary{
+      color:#fff;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));
+      box-shadow:0 8px 18px rgba(0,0,0,.16);
+    }
+    .btn.ghost{
+      color:var(--sub);
+      background:rgba(255,255,255,.9);
+      border:1px solid var(--line);
+    }
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+
+    .info{color:var(--sub);font-size:12px;line-height:1.55}
+    .muted{color:var(--sub)}
+    .alert{
+      padding:10px 12px;border-radius:14px;
+      border:1px solid #ffd6e7;
+      background:#fff5fa;
+      font-size:12px; line-height:1.55;
     }
 
-    .app {
-      max-width: 1040px;
-      margin: 0 auto;
-      padding: 24px 16px 40px;
+    /* hearing */
+    .form{display:grid; gap:10px;}
+    .field label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+    .field label span{font-size:12px;font-weight:700}
+    .field label small{font-size:11px;color:var(--sub)}
+    input[type="text"], textarea, select{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:9px 10px;
+      font-size:13px;
+      outline:none;
+      background:rgba(255,255,255,.95);
     }
-
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 20px;
+    textarea{min-height:78px;resize:vertical}
+    input:focus, textarea:focus, select:focus{
+      border-color:var(--accent);
+      box-shadow:0 0 0 1px rgba(255,111,181,.22);
     }
+    .small{font-size:11px;color:var(--sub)}
+    .statusline{font-size:12px;color:var(--sub);min-height:18px}
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    /* notice */
+    .noticeItem{padding:10px 0;border-bottom:1px dashed var(--line)}
+    .noticeItem:last-child{border-bottom:none}
+    .noticeTitle{font-weight:900;margin-bottom:4px}
+    .noticeMeta{margin-top:6px;font-size:11px;color:var(--sub)}
+
+    /* chat */
+    .chatbox{
+      height:360px;
+      overflow:auto;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px;
+      background:#fafafe;
     }
-
-    .brand-logo {
-      width: 36px;
-      height: 36px;
-      border-radius: 12px;
-      background: conic-gradient(from 180deg, #ff6fb5, #ffc36f, #6fb7ff, #ff6fb5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-weight: 800;
-      font-size: 18px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.16);
+    .msg{display:flex;margin:8px 0;gap:8px}
+    .msg.me{justify-content:flex-end}
+    .bubble{
+      max-width:82%;
+      padding:9px 10px;
+      border-radius:14px;
+      border:1px solid #ececf5;
+      background:#fff;
+      font-size:13px;
+      line-height:1.5;
+      word-break:break-word;
     }
-
-    .brand-title { font-size: 20px; font-weight: 700; }
-    .brand-sub { font-size: 12px; color: var(--text-sub); }
-
-    .header-right { text-align: right; font-size: 12px; color: var(--text-sub); }
-
-    main {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
+    .msg.me .bubble{
+      background:#fff7fb;
+      border-color:#ffd6e7;
     }
-
-    .card {
-      background: var(--card-bg);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow-soft);
-      padding: 18px 20px;
-      border: 1px solid rgba(255,255,255,0.8);
+    .meta{font-size:11px;color:var(--sub);margin-top:4px}
+    .filelink{
+      display:inline-block;
+      margin-top:6px;
+      font-size:12px;
+      color:#0b63ce;
+      text-decoration:underline;
+      word-break:break-all;
     }
-
-    .status-card {
-      display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr);
-      gap: 16px;
-      align-items: stretch;
+    .chatinput{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap:10px;
+      margin-top:10px;
+      align-items:end;
     }
-
-    .status-main h1 {
-      font-size: 18px;
-      margin-bottom: 4px;
-    }
-
-    .status-main p {
-      font-size: 13px;
-      color: var(--text-sub);
-      line-height: 1.6;
-    }
-
-    .ticket-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.8);
-      border: 1px solid var(--border-soft);
-      font-size: 11px;
-      margin-top: 8px;
-    }
-
-    .ticket-id {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 11px;
-      letter-spacing: 0.08em;
-    }
-
-    .status-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: var(--accent-soft);
-      color: var(--accent);
-      font-size: 11px;
-      font-weight: 600;
-      margin-top: 8px;
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: var(--accent);
-      box-shadow: 0 0 0 4px rgba(255,111,181,0.2);
-    }
-
-    .status-steps {
-      font-size: 11px;
-      color: var(--text-sub);
-      margin-top: 10px;
-    }
-
-    .status-steps span.current {
-      color: var(--accent);
-      font-weight: 600;
-    }
-
-    .progress-wrapper { margin-top: 12px; }
-
-    .progress-label {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: var(--text-sub);
-      margin-bottom: 4px;
-    }
-
-    .progress-bar {
-      width: 100%;
-      height: 6px;
-      border-radius: 999px;
-      background: #e9e9f0;
-      overflow: hidden;
-    }
-
-    .progress-bar-inner {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #ff6fb5, #ffc36f);
-      border-radius: 999px;
-      transition: width 0.5s ease-out;
-    }
-
-    .status-sub {
-      font-size: 11px;
-      color: var(--text-sub);
-      margin-top: 10px;
-    }
-
-    .plan-info {
-      font-size: 12px;
-      line-height: 1.7;
-    }
-
-    .plan-pill {
-      display: inline-flex;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.9);
-      border: 1px solid var(--border-soft);
-      font-size: 11px;
-      margin-bottom: 6px;
-    }
-
-    .two-column {
-      display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr);
-      gap: 18px;
-    }
-
-    .card-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
-    .card-sub { font-size: 12px; color: var(--text-sub); margin-bottom: 12px; }
-
-    .field { margin-bottom: 10px; }
-
-    .field label {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      font-size: 12px;
-      margin-bottom: 4px;
-    }
-    .field label span { font-weight: 500; }
-    .field label small { font-size: 10px; color: var(--text-sub); }
-
-    input[type="text"],
-    input[type="email"],
-    textarea,
-    select {
-      width: 100%;
-      padding: 8px 9px;
-      border-radius: 10px;
-      border: 1px solid var(--border-soft);
-      font-size: 12px;
-      outline: none;
-      background: rgba(255,255,255,0.9);
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 70px;
-    }
-
-    input:focus,
-    textarea:focus,
-    select:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(255,111,181,0.2);
-    }
-
-    .help-text {
-      font-size: 11px;
-      color: var(--text-sub);
-      margin-top: 4px;
-    }
-
-    .btn {
-      border: none;
-      border-radius: 999px;
-      padding: 8px 16px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 4px;
-    }
-
-    .btn-primary {
-      background: linear-gradient(90deg, #ff6fb5, #ffc36f);
-      color: #fff;
-      box-shadow: 0 8px 18px rgba(0,0,0,0.18);
-    }
-
-    .btn-ghost {
-      background: rgba(255,255,255,0.9);
-      border: 1px solid var(--border-soft);
-      color: var(--text-sub);
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 10px;
-      background: #f3f3ff;
-      color: var(--text-sub);
-      margin-right: 6px;
-    }
-
-    .badge-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: #b0b3ff;
-    }
-
-    .notice-list {
-      list-style: none;
-      margin-top: 10px;
-      font-size: 12px;
-      color: var(--text-sub);
-    }
-
-    .notice-list li + li {
-      margin-top: 6px;
-      padding-top: 6px;
-      border-top: 1px dashed #ececf5;
-    }
-
-    .notice-date {
-      font-size: 10px;
-      color: #999;
-      margin-right: 6px;
-    }
-
-    /* チャット部分 */
-
-    .chat-card {
-      margin-top: 4px;
-    }
-
-    .chat-messages {
-      max-height: 260px;
-      overflow-y: auto;
-      padding-right: 4px;
-      margin-bottom: 10px;
-    }
-
-    .chat-empty {
-      font-size: 12px;
-      color: var(--text-sub);
-      padding: 8px 4px;
-    }
-
-    .chat-row {
-      display: flex;
-      margin-bottom: 6px;
-    }
-
-    .chat-row.client {
-      justify-content: flex-end;
-    }
-
-    .chat-row.admin {
-      justify-content: flex-start;
-    }
-
-    .chat-bubble {
-      max-width: 80%;
-      padding: 8px 10px;
-      border-radius: 14px;
-      font-size: 12px;
-      line-height: 1.5;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-    }
-
-    .chat-bubble.client {
-      background: var(--accent-soft);
-      color: var(--text-main);
-      border-bottom-right-radius: 4px;
-    }
-
-    .chat-bubble.admin {
-      background: #f1f1f8;
-      color: var(--text-main);
-      border-bottom-left-radius: 4px;
-    }
-
-    .chat-meta {
-      font-size: 10px;
-      color: var(--text-sub);
-      margin-top: 4px;
-      display: flex;
-      justify-content: space-between;
-      gap: 6px;
-    }
-
-    .chat-file {
-      margin-top: 4px;
-      font-size: 11px;
-    }
-
-    .chat-file a {
-      color: var(--accent-deep);
-      text-decoration: none;
-    }
-
-    .chat-file a:hover {
-      text-decoration: underline;
-    }
-
-    .chat-from-label {
-      font-weight: 600;
-    }
-
-    .chat-input-row {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-top: 4px;
-    }
-
-    .chat-input-row textarea {
-      min-height: 60px;
-    }
-
-    .chat-bottom-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .chat-file-input {
-      font-size: 11px;
-    }
-
-    .chat-status {
-      font-size: 11px;
-      color: var(--text-sub);
-      margin-top: 2px;
-    }
-
-    footer {
-      margin-top: 14px;
-      font-size: 11px;
-      color: var(--text-sub);
-      text-align: center;
-    }
-
-    @media (max-width: 768px) {
-      .status-card,
-      .two-column {
-        grid-template-columns: minmax(0, 1fr);
-      }
-
-      .card { padding: 14px 14px; }
-
-      header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 6px;
-      }
-
-      .header-right { text-align: left; }
-
-      .chat-bubble {
-        max-width: 100%;
-      }
-    }
+    .chatinput textarea{min-height:52px}
+    .uploader{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px}
+    input[type="file"]{font-size:12px}
   </style>
 </head>
+
 <body>
-  <div class="app">
+  <div class="wrap">
     <header>
       <div class="brand">
-        <div class="brand-logo">U</div>
+        <div class="logo">U</div>
         <div>
-          <div class="brand-title">うたプレ マイページ</div>
-          <div class="brand-sub">推しのための、プレゼント音楽制作チケット</div>
+          <div class="title">うたプレ マイページ</div>
+          <div class="sub">シリアル入力でログイン済みのチケット専用ページ</div>
         </div>
       </div>
-      <div class="header-right">
-        <div id="userNameLabel">ようこそ</div>
-        <div id="miniStatusLabel">チケット照合が完了しました</div>
-      </div>
+      <div class="pill" id="tokenPill">token: -</div>
     </header>
 
-    <main>
-      <!-- ステータス ＋ チケット情報 -->
-      <section class="card status-card">
-        <div class="status-main">
-          <h1 id="welcomeTitle">〇〇さんの制作マイページ</h1>
-          <p>
-            こちらは、チケットを使っての作品制作を進めるための専用ページです。<br/>
-            下のステップに沿って情報をご入力いただくと、制作がスムーズにスタートします。
-          </p>
+    <div id="topAlert" class="alert" style="display:none;"></div>
 
-          <div class="ticket-badge">
-            <span>チケットID</span>
-            <span class="ticket-id" id="ticketIdLabel">UTP-XXXX-XXXX</span>
-          </div>
+    <!-- お知らせ欄 -->
+    <div id="noticeArea" class="card" style="margin-bottom:14px; display:none;">
+      <h2>お知らせ</h2>
+      <div id="noticeContent" class="info"></div>
+    </div>
 
-          <div class="status-chip">
-            <span class="status-dot"></span>
-            <span id="statusLabel">ヒアリング入力待ち</span>
-          </div>
-
-          <div class="status-steps">
-            <span class="current">① ヒアリング入力</span> → 
-            <span>② 制作中</span> → 
-            <span>③ 仕上がり確認</span> → 
-            <span>④ 納品完了</span>
-          </div>
-
-          <div class="progress-wrapper">
-            <div class="progress-label">
-              <span>進行状況</span>
-              <span id="progressPercentLabel">0%</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-bar-inner" id="progressBarInner"></div>
-            </div>
-          </div>
-
-          <div class="status-sub" id="statusDetail">
-            まずは下の「ヒアリングフォーム」から、曲やイメージについて教えてください。
-          </div>
+    <div class="grid">
+      <!-- LEFT -->
+      <div class="card">
+        <h2>チケット情報</h2>
+        <div class="row" style="margin-bottom:10px;">
+          <span class="badge"><span class="dot wait" id="statusDot"></span><span id="statusText">読み込み中…</span></span>
+          <span class="badge"><span class="muted">シリアル</span>&nbsp;<span id="serialText" style="font-weight:700">-</span></span>
         </div>
 
-        <div class="plan-info">
-          <div class="plan-pill" id="planNamePill">プラン：歌ってみたMIX</div>
-          <div>
-            <strong>チケット内容</strong><br>
-            <span id="planDescription">
-              歌ってみた音源のMIX（ピッチ補正・タイミング調整込み）を1曲分制作します。<br>
-              通常納期は<span id="planLeadTime">10〜14日程度</span>です。
-            </span>
-          </div>
-          <div style="margin-top:10px;">
-            <strong>このチケットをプレゼントしてくれた方</strong><br>
-            <span id="giftFrom">（情報が登録されていません）</span>
-          </div>
+        <div id="ticketInfo">
+          <div class="kv"><div class="k">お名前</div><div class="v" id="userName">-</div></div>
+          <div class="kv"><div class="k">プレゼント</div><div class="v" id="giftFrom">-</div></div>
+          <div class="kv"><div class="k">プラン</div><div class="v" id="planName">-</div></div>
+          <div class="kv"><div class="k">納期目安</div><div class="v" id="leadTime">-</div></div>
+          <div class="kv"><div class="k">内容</div><div class="v" id="planDesc">-</div></div>
         </div>
-      </section>
 
-      <!-- ヒアリング & お知らせ -->
-      <section class="two-column">
-        <section class="card">
-          <div class="card-title">ヒアリングフォーム（イメージメモ）</div>
-          <div class="card-sub">
-            制作を進めるために、曲やイメージについてメモしておけるフォームです。<br>
-            このデモではブラウザ内にだけ保存され、運営には送信されません。
+        <div style="height:12px"></div>
+
+        <h2>ヒアリングシート</h2>
+        <div class="info" style="margin-bottom:10px;">
+          <b>一時保存</b>はこの端末内（下書き）に保存。<b>送信</b>すると運営に提出されます。<br>
+          <b>送信後は内容を変更できません</b>（受領後の改ざん防止）。
+        </div>
+
+        <div id="hearingForm" class="form">
+          <div class="field">
+            <label><span>曲名（原曲）</span><small>例：曲名 / アーティスト</small></label>
+            <input type="text" id="hearing_song" name="hearing_song" placeholder="例）○○ / ○○" />
           </div>
 
-          <form id="hearingForm">
-            <div class="field">
-              <label>
-                <span>お名前（呼び名）</span>
-                <small>作品ページに掲載される可能性があります</small>
-              </label>
-              <input type="text" id="fieldDisplayName" placeholder="例）おもちまる" />
-            </div>
-
-            <div class="field">
-              <label><span>楽曲タイトル / 使用する音源</span></label>
-              <input type="text" id="fieldSongTitle" placeholder="例）〇〇 / △△のカバー" />
-            </div>
-
-            <div class="field">
-              <label>
-                <span>完成イメージ・こだわり</span>
-                <small>雰囲気・重視してほしいポイントなど</small>
-              </label>
-              <textarea id="fieldImage" placeholder="例）アイドル系で明るく、歌詞がはっきり聞こえるMIXにしてほしい など"></textarea>
-            </div>
-
-            <button type="button" class="btn btn-primary" id="saveHearingButton">
-              この内容を端末に一時保存
-            </button>
-            <div class="help-text" id="hearingSaveStatus"></div>
-          </form>
-        </section>
-
-        <section class="card">
-          <div class="card-title">運営からのお知らせ（サンプル）</div>
-          <div class="card-sub">
-            制作の進行に関する連絡や、追加でお願いしたいことがある場合、ここに表示されます。
+          <div class="field">
+            <label><span>使用する動画URL</span><small>YouTube等（任意）</small></label>
+            <input type="text" id="hearing_video_url" name="hearing_video_url" placeholder="https://..." />
           </div>
 
-          <div>
-            <span class="badge">
-              <span class="badge-dot"></span> 最新ステータス
-            </span>
-            <span class="badge">
-              <span class="badge-dot" style="background:#ffb0cf;"></span> 納期目安
-            </span>
+          <div class="field">
+            <label><span>素材の有無</span><small>ボーカル / オケ / ハモリ など</small></label>
+            <textarea id="hearing_materials" name="hearing_materials" placeholder="例）ボーカルWAVあり、オケあり、ハモリなし"></textarea>
           </div>
 
-          <ul class="notice-list" id="noticeList"></ul>
-        </section>
-      </section>
+          <div class="field">
+            <label><span>希望・こだわり</span><small>雰囲気 / 参考音源 / NG事項</small></label>
+            <textarea id="hearing_requests" name="hearing_requests" placeholder="例）明るめ、低音強め、ピッチ自然め…"></textarea>
+          </div>
 
-      <!-- チャット（やりとり） -->
-      <section class="card chat-card">
-        <div class="card-title">制作に関するやりとり</div>
-        <div class="card-sub">
+          <div class="field">
+            <label><span>公開予定</span><small>任意</small></label>
+            <select id="hearing_publish" name="hearing_publish">
+              <option value="">未定</option>
+              <option value="ok">公開OK</option>
+              <option value="ng">非公開希望</option>
+              <option value="ask">要相談</option>
+            </select>
+          </div>
+
+          <div class="row" style="margin-top:6px;">
+            <button type="button" class="btn ghost" id="hearingSaveDraftBtn">一時保存（下書き）</button>
+            <button type="button" class="btn primary" id="hearingSubmitBtn">送信（運営に提出）</button>
+          </div>
+          <div class="statusline" id="hearingSubmitStatus"></div>
+          <div class="small">※「送信」した内容はロックされ、運営が確認して制作がスタートします。</div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="card">
+        <h2>チャット（運営とやりとり）</h2>
+        <div class="info" style="margin-bottom:10px;">
+          <div style="font-weight:800; margin-bottom:4px;">制作に関するやりとり</div>
           うたプレ運営（制作者）とのやりとりを残しておけるチャットです。<br>
           追加のご要望や、修正してほしいポイントがあればこちらからお送りください。
+          <div style="margin-top:6px;">ファイルも送れます（画像/PDF/音声など）。日本語ファイル名もOK。</div>
         </div>
 
-        <div id="chatMessages" class="chat-messages">
-          <div class="chat-empty">メッセージはまだありません。</div>
+        <div class="chatbox" id="chatBox"></div>
+
+        <div class="chatinput">
+          <textarea id="chatText" placeholder="メッセージを書いて送信"></textarea>
+          <button class="btn primary" id="sendBtn">送信</button>
         </div>
 
-        <form id="chatForm">
-          <div class="chat-input-row">
-            <textarea
-              id="chatBody"
-              placeholder="例）サビのコーラスを少し大きめにしてほしいです　など"
-            ></textarea>
+        <div class="uploader">
+          <input type="file" id="fileInput" />
+          <button class="btn ghost" id="sendFileBtn">ファイル送信</button>
+          <span class="statusline" id="fileStatus" style="min-height:auto;"></span>
+        </div>
 
-            <div class="chat-bottom-row">
-              <div class="chat-file-input">
-                <label style="font-size:11px;">
-                  音源ファイルや資料を添付（任意）：
-                  <input type="file" id="chatFile" />
-                </label>
-              </div>
-
-              <button type="submit" class="btn btn-primary" id="chatSendButton">
-                メッセージを送信
-              </button>
-            </div>
-            <div class="chat-status" id="chatStatus">
-              ※ 送信内容は、うたプレ運営とのやりとりの記録として保存されます。
-            </div>
-          </div>
-        </form>
-      </section>
-    </main>
-
-    <footer>
-      © <span id="thisYear"></span> utapre / おもちまる. All rights reserved.
-    </footer>
+        <div class="small" style="margin-top:8px;">
+          送信できないときは、回線が不安定 or ファイルが大きすぎる可能性があります。
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
-    // ▼ あなたの Supabase プロジェクト情報 ▼
+    // =====================
+    // Supabase settings
+    // =====================
     const SUPABASE_URL = "https://nnexyynjimfpdcqeuxgn.supabase.co";
     const SUPABASE_ANON_KEY =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5uZXh5eW5qaW1mcGRjcWV1eGduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0NDAxMzAsImV4cCI6MjA4MTAxNjEzMH0.ZWAsrtzHAf0A9wDAfXPUKTlwQ92G1KhgUWFAyLULl9c";
 
+    const BUCKET_NAME = "ticket-chat-files";
+
     const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let currentTicketId = null;  // tickets.id
-    let currentUserName = "ゲスト";
-
-    function getTokenFromQuery() {
-      const params = new URLSearchParams(window.location.search);
-      return params.get("token");
+    // =====================
+    // Helpers
+    // =====================
+    function getQueryParam(name){
+      const url = new URL(window.location.href);
+      return url.searchParams.get(name);
+    }
+    function setTopAlert(msg){
+      const el = document.getElementById("topAlert");
+      el.style.display = "block";
+      el.textContent = msg;
+    }
+    function escapeHtml(str){
+      return (str ?? "").toString()
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+    function formatTime(iso){
+      try{
+        const d = new Date(iso);
+        return d.toLocaleString("ja-JP", { hour12:false });
+      }catch{ return ""; }
     }
 
-    function getStatusInfo(step) {
-      switch (step) {
-        case 0:
-          return {
-            label: "ヒアリング入力待ち",
-            detail:
-              "まずはヒアリングフォームのご入力をお願いいたします。ご入力が確認でき次第、制作がスタートします。",
-            percent: 10,
-          };
-        case 1:
-          return {
-            label: "制作中",
-            detail:
-              "いただいた内容をもとに、現在制作を進めています。進捗があり次第こちらにお知らせします。",
-            percent: 50,
-          };
-        case 2:
-          return {
-            label: "仕上がり確認待ち",
-            detail:
-              "仮完成データをご確認いただいている段階です。修正のご希望があれば遠慮なくお知らせください。",
-            percent: 80,
-          };
-        case 3:
-          return {
-            label: "納品完了",
-            detail: "作品の納品が完了しました。ご利用ありがとうございました！",
-            percent: 100,
-          };
-        default:
-          return {
-            label: "準備中",
-            detail: "ステータス情報の取得を準備しています。",
-            percent: 0,
-          };
+    // Storageキーを安全に（日本語OK）
+    function safeFileName(original){
+      const enc = encodeURIComponent(original).replaceAll("%", "_");
+      if (enc.length > 180){
+        return enc.slice(0,120) + "__" + enc.slice(-50);
+      }
+      return enc;
+    }
+
+    // 進行状況（0〜6）
+    function statusLabel(step){
+      const map = {
+        0: "ヒアリング入力待ち",
+        1: "ヒアリング送信済み（確認中）",
+        2: "制作準備中",
+        3: "制作中",
+        4: "確認・修正対応中",
+        5: "納品準備中",
+        6: "納品済み"
+      };
+      return map[step] ?? `進行：${step}`;
+    }
+
+    function setStatus(step){
+      const dot = document.getElementById("statusDot");
+      const txt = document.getElementById("statusText");
+      txt.textContent = statusLabel(step);
+
+      dot.classList.remove("ok","ng","wait");
+      if (step === 6) dot.classList.add("ok");
+      else dot.classList.add("wait");
+    }
+
+    // =====================
+    // Notices
+    // =====================
+    function severityBadge(sev){
+      if (sev === 2) return "【緊急】";
+      if (sev === 1) return "【重要】";
+      return "";
+    }
+
+    function showNotices(notices){
+      const area = document.getElementById("noticeArea");
+      const content = document.getElementById("noticeContent");
+      if (!notices || notices.length === 0) return;
+
+      notices.sort((a,b)=> new Date(b.updated_at) - new Date(a.updated_at));
+
+      content.innerHTML = notices.map(n=>{
+        const badge = severityBadge(n.severity);
+        const title = (n.title || "").trim() || "お知らせ";
+        const body = (n.body || "").trim().replaceAll("\n","<br>");
+        const time = n.updated_at ? new Date(n.updated_at).toLocaleString("ja-JP",{hour12:false}) : "";
+        return `
+          <div class="noticeItem">
+            <div class="noticeTitle">${escapeHtml(badge)} ${escapeHtml(title)}</div>
+            <div>${body}</div>
+            <div class="noticeMeta">更新：${escapeHtml(time)}</div>
+          </div>
+        `;
+      }).join("");
+
+      area.style.display = "block";
+    }
+
+    async function loadNoticesForTicket(ticketId){
+      const { data, error } = await supa
+        .from("ticket_notices")
+        .select("*")
+        .eq("is_active", true)
+        .or(`ticket_id.is.null,ticket_id.eq.${ticketId}`);
+
+      if (error) throw error;
+      return data || [];
+    }
+
+    // =====================
+    // Hearing (draft + submit + lock)
+    // =====================
+    function collectHearingData(formEl) {
+      const data = {};
+      const elements = formEl.querySelectorAll("input, textarea, select");
+
+      elements.forEach((el) => {
+        const key = el.name || el.id;
+        if (!key) return;
+
+        if (el.type === "password") return;
+
+        if (el.type === "checkbox") {
+          if (!data[key]) data[key] = [];
+          if (el.checked) data[key].push(el.value || true);
+          return;
+        }
+
+        if (el.type === "radio") {
+          if (el.checked) data[key] = el.value;
+          return;
+        }
+
+        data[key] = el.value;
+      });
+
+      return data;
+    }
+
+    function saveHearingDraft(ticketId, hearingData) {
+      const key = `utapre_hearing_draft_ticket_${ticketId}`;
+      localStorage.setItem(key, JSON.stringify({ savedAt: Date.now(), hearingData }));
+    }
+
+    function loadHearingDraft(ticketId) {
+      const key = `utapre_hearing_draft_ticket_${ticketId}`;
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+      try { return JSON.parse(raw); } catch { return null; }
+    }
+
+    function clearHearingDraft(ticketId) {
+      const key = `utapre_hearing_draft_ticket_${ticketId}`;
+      localStorage.removeItem(key);
+    }
+
+    function applyHearingToForm(formEl, hearingData) {
+      if (!hearingData) return;
+
+      Object.entries(hearingData).forEach(([key, val]) => {
+        const els = formEl.querySelectorAll(`[name="${key}"], #${CSS.escape(key)}`);
+        if (!els || els.length === 0) return;
+
+        els.forEach((el) => {
+          if (el.type === "checkbox") {
+            const arr = Array.isArray(val) ? val : [val];
+            el.checked = arr.includes(el.value) || (el.value === "" && arr.includes(true));
+          } else if (el.type === "radio") {
+            el.checked = el.value === val;
+          } else {
+            el.value = val ?? "";
+          }
+        });
+      });
+    }
+
+    async function loadSubmittedHearing(ticketId) {
+      const { data, error } = await supa
+        .from("ticket_hearings")
+        .select("*")
+        .eq("ticket_id", ticketId)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    }
+
+    function lockHearingForm(formEl, submittedAt) {
+      formEl.querySelectorAll("input, textarea, select").forEach((el) => {
+        el.disabled = true;
+      });
+
+      const saveBtn = document.getElementById("hearingSaveDraftBtn");
+      const submitBtn = document.getElementById("hearingSubmitBtn");
+      if (saveBtn) saveBtn.disabled = true;
+      if (submitBtn) submitBtn.disabled = true;
+
+      const statusEl = document.getElementById("hearingSubmitStatus");
+      if (statusEl) {
+        const t = submittedAt ? new Date(submittedAt).toLocaleString("ja-JP", { hour12:false }) : "";
+        statusEl.textContent = t ? `送信済み（${t}）※内容は変更できません` : "送信済み ※内容は変更できません";
       }
     }
 
-    async function fetchMyPageData(token) {
+    async function submitHearing(ticketId, hearingData) {
+      const nowIso = new Date().toISOString();
+      const payload = {
+        ticket_id: ticketId,
+        hearing_data: hearingData,
+        submitted_at: nowIso,
+        updated_at: nowIso,
+      };
+
+      const { data, error } = await supa
+        .from("ticket_hearings")
+        .upsert(payload, { onConflict: "ticket_id" })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
+
+    // =====================
+    // Chat
+    // =====================
+    function renderMessages(list){
+      const box = document.getElementById("chatBox");
+      box.innerHTML = "";
+
+      list.forEach(m => {
+        const isMe = (m.sender === "user");
+        const wrap = document.createElement("div");
+        wrap.className = "msg" + (isMe ? " me" : "");
+
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+
+        const body = document.createElement("div");
+        body.innerHTML = escapeHtml(m.message || "").replaceAll("\n","<br>");
+        bubble.appendChild(body);
+
+        if (m.file_url){
+          const a = document.createElement("a");
+          a.className = "filelink";
+          a.href = m.file_url;
+          a.target = "_blank";
+          a.rel = "noreferrer";
+          a.textContent = "添付ファイルを開く";
+          bubble.appendChild(a);
+        }
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.textContent = `${m.sender ?? ""} ・ ${formatTime(m.created_at)}`;
+        bubble.appendChild(meta);
+
+        wrap.appendChild(bubble);
+        box.appendChild(wrap);
+      });
+
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function loadMessages(ticketId){
+      const { data, error } = await supa
+        .from("ticket_messages")
+        .select("*")
+        .eq("ticket_id", ticketId)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    }
+
+    async function sendMessage(ticketId, sender, message, fileUrl){
+      const payload = {
+        ticket_id: ticketId,
+        sender,
+        message: message || "",
+        file_url: fileUrl || null
+      };
+
+      const { error } = await supa.from("ticket_messages").insert(payload);
+      if (error) throw error;
+    }
+
+    async function uploadFile(ticketId, file){
+      const ts = Date.now();
+      const safe = safeFileName(file.name || "file");
+      const path = `${ticketId}/file_${ts}_${safe}`;
+
+      const { error: upErr } = await supa.storage
+        .from(BUCKET_NAME)
+        .upload(path, file, { upsert: false });
+
+      if (upErr) throw upErr;
+
+      const { data: pub } = supa.storage.from(BUCKET_NAME).getPublicUrl(path);
+      return pub?.publicUrl;
+    }
+
+    // =====================
+    // Main
+    // =====================
+    let currentTicket = null;
+    let refreshTimer = null;
+
+    async function loadTicketByToken(token){
       const { data, error } = await supa
         .from("tickets")
         .select("*")
         .eq("access_token", token)
-        .limit(1);
+        .single();
 
-      if (error) {
-        console.error(error);
-        throw new Error("マイページ情報の取得に失敗しました。");
-      }
-      if (!data || !data.length) {
-        throw new Error("対応するチケットが見つかりませんでした。");
-      }
-      return data[0];
+      if (error) throw error;
+      return data;
     }
 
-    // ヒアリング保存用（ブラウザ内だけ）
-    function getStorageKey(ticketSerial) {
-      return "utapre_hearing_" + ticketSerial;
-    }
-    function loadHearing(ticketSerial) {
-      const raw = localStorage.getItem(getStorageKey(ticketSerial));
-      if (!raw) return null;
-      try { return JSON.parse(raw); } catch { return null; }
-    }
-    function saveHearing(ticketSerial, payload) {
-      localStorage.setItem(getStorageKey(ticketSerial), JSON.stringify(payload));
+    function fillTicketUI(t){
+      document.getElementById("serialText").textContent = t.serial || "-";
+      document.getElementById("userName").textContent = t.user_name || "-";
+      document.getElementById("giftFrom").textContent = t.gift_from || "（なし）";
+      document.getElementById("planName").textContent = t.plan_name || "-";
+      document.getElementById("leadTime").textContent = t.plan_lead_time || "（未設定）";
+      document.getElementById("planDesc").textContent = t.plan_description || "（未設定）";
+      setStatus(t.status_step ?? 0);
     }
 
-    function formatDateTime(ts) {
-      if (!ts) return "";
-      const d = new Date(ts);
-      if (Number.isNaN(d.getTime())) return "";
-      return d.toLocaleString("ja-JP");
-    }
+    async function init(){
+      const token = getQueryParam("token");
+      document.getElementById("tokenPill").textContent = "token: " + (token || "-");
 
-    /* ------------ チャット関連 ------------ */
-
-    async function loadChatMessages() {
-      if (!currentTicketId) return;
-      const listEl = document.getElementById("chatMessages");
-      listEl.innerHTML = '<div class="chat-empty">読み込み中です…</div>';
-
-      const { data, error } = await supa
-        .from("ticket_messages")
-        .select("*")
-        .eq("ticket_id", currentTicketId)
-        .order("created_at", { ascending: true });
-
-      if (error) {
-        console.error("loadChatMessages error:", error);
-        listEl.innerHTML =
-          '<div class="chat-empty">メッセージの取得に失敗しました。</div>';
+      if (!token){
+        setTopAlert("このページは token が必要です。シリアル入力ページ（use_ticket.html）からアクセスしてください。");
         return;
       }
 
-      if (!data || data.length === 0) {
-        listEl.innerHTML =
-          '<div class="chat-empty">メッセージはまだありません。</div>';
-        return;
-      }
+      try{
+        currentTicket = await loadTicketByToken(token);
+        fillTicketUI(currentTicket);
 
-      listEl.innerHTML = "";
-
-      data.forEach((msg) => {
-        const row = document.createElement("div");
-        row.className = "chat-row " + (msg.from_role === "client" ? "client" : "admin");
-
-        const bubble = document.createElement("div");
-        bubble.className =
-          "chat-bubble " + (msg.from_role === "client" ? "client" : "admin");
-
-        const body = document.createElement("div");
-        body.textContent = msg.body || "(本文なし)";
-        bubble.appendChild(body);
-
-        if (msg.file_url) {
-          const fileDiv = document.createElement("div");
-          fileDiv.className = "chat-file";
-          const a = document.createElement("a");
-          a.href = msg.file_url;
-          a.target = "_blank";
-          a.rel = "noopener noreferrer";
-
-          // 拡張子からざっくり種別を判定してラベルを付ける
-          let label = "添付ファイルを開く";
-          if (msg.file_url.match(/\.(png|jpe?g|gif|webp)$/i)) {
-            label = "画像ファイルを開く";
-          } else if (msg.file_url.match(/\.(mp3|wav|ogg|m4a)$/i)) {
-            label = "音声ファイルを開く";
-          } else if (msg.file_url.match(/\.(mp4|mov|webm)$/i)) {
-            label = "動画ファイルを開く";
-          }
-
-          a.textContent = label;
-          fileDiv.appendChild(a);
-          bubble.appendChild(fileDiv);
+        // お知らせ読み込み（全体＋個別）
+        try{
+          const notices = await loadNoticesForTicket(currentTicket.id);
+          showNotices(notices);
+        }catch(e){
+          console.error("notice load error", e);
         }
 
-        const meta = document.createElement("div");
-        meta.className = "chat-meta";
+        // hearing
+        const formEl = document.getElementById("hearingForm");
+        const saveBtn = document.getElementById("hearingSaveDraftBtn");
+        const submitBtn = document.getElementById("hearingSubmitBtn");
+        const statusEl = document.getElementById("hearingSubmitStatus");
 
-        const fromLabel = document.createElement("span");
-        fromLabel.className = "chat-from-label";
-        fromLabel.textContent = msg.from_role === "client" ? "あなた" : "うたプレ運営";
+        const submitted = await loadSubmittedHearing(currentTicket.id);
+        if (submitted?.hearing_data) {
+          applyHearingToForm(formEl, submitted.hearing_data);
+          lockHearingForm(formEl, submitted.submitted_at);
+        } else {
+          const draft = loadHearingDraft(currentTicket.id);
+          if (draft?.hearingData) applyHearingToForm(formEl, draft.hearingData);
 
-        const timeLabel = document.createElement("span");
-        timeLabel.textContent = formatDateTime(msg.created_at);
+          saveBtn.onclick = () => {
+            const hearingData = collectHearingData(formEl);
+            saveHearingDraft(currentTicket.id, hearingData);
+            statusEl.textContent = "下書きを保存した";
+            setTimeout(() => statusEl.textContent = "", 2000);
+          };
 
-        meta.appendChild(fromLabel);
-        meta.appendChild(timeLabel);
+          submitBtn.onclick = async () => {
+            try{
+              submitBtn.disabled = true;
+              saveBtn.disabled = true;
+              statusEl.textContent = "送信中…";
 
-        bubble.appendChild(meta);
-        row.appendChild(bubble);
-        listEl.appendChild(row);
-      });
+              const hearingData = collectHearingData(formEl);
+              const saved = await submitHearing(currentTicket.id, hearingData);
 
-      // 一番下までスクロール
-      listEl.scrollTop = listEl.scrollHeight;
-    }
+              clearHearingDraft(currentTicket.id);
+              applyHearingToForm(formEl, saved.hearing_data);
+              lockHearingForm(formEl, saved.submitted_at);
+            }catch(e){
+              console.error(e);
+              statusEl.textContent = "送信失敗：" + (e?.message || e);
+              submitBtn.disabled = false;
+              saveBtn.disabled = false;
+            }
+          };
+        }
 
-    async function sendChatMessage(event) {
-      event.preventDefault();
-      if (!currentTicketId) return;
+        // chat refresh
+        const doRefresh = async () => {
+          const list = await loadMessages(currentTicket.id);
+          renderMessages(list);
+        };
+        await doRefresh();
+        refreshTimer = setInterval(doRefresh, 6000);
 
-      const bodyEl = document.getElementById("chatBody");
-      const fileEl = document.getElementById("chatFile");
-      const statusEl = document.getElementById("chatStatus");
-      const sendBtn = document.getElementById("chatSendButton");
+        // send text
+        const sendBtn = document.getElementById("sendBtn");
+        const chatText = document.getElementById("chatText");
 
-      const body = bodyEl.value.trim();
-      const file = fileEl.files[0] || null;
+        sendBtn.onclick = async () => {
+          const text = chatText.value.trim();
+          if (!text) return;
 
-      if (!body && !file) {
-        statusEl.textContent = "メッセージかファイルのどちらかを入力してください。";
-        return;
-      }
-
-      statusEl.textContent = "送信中です…";
-      sendBtn.disabled = true;
-
-      let fileUrl = null;
-      let fileName = null; // 画面には出さない運用なので基本 null のまま
-
-      try {
-        if (file) {
-          // 拡張子だけ取り出す（例: ".png"）
-          const originalName = file.name;
-          const extMatch = originalName.match(/\.([^.]+)$/);
-          const ext = extMatch ? "." + extMatch[1] : "";
-
-          // Supabase用には「英数字ベースの安全なファイル名」を使う（日本語等は使わない）
-          const safeBase = "file_" + Date.now();
-          const path = `${currentTicketId}/${safeBase}${ext}`;
-
-          const { data: uploaded, error: uploadError } = await supa.storage
-            .from("ticket-chat-files")
-            .upload(path, file, { upsert: true });
-
-          if (uploadError) {
-            console.error("upload error:", uploadError);
-            statusEl.textContent =
-              "ファイルのアップロードに失敗しました：" + uploadError.message;
+          sendBtn.disabled = true;
+          try{
+            await sendMessage(currentTicket.id, "user", text, null);
+            chatText.value = "";
+            await doRefresh();
+          }catch(e){
+            console.error(e);
+            setTopAlert("送信に失敗：" + (e?.message || e));
+          }finally{
             sendBtn.disabled = false;
+          }
+        };
+
+        // send file
+        const fileInput = document.getElementById("fileInput");
+        const sendFileBtn = document.getElementById("sendFileBtn");
+        const fileStatus = document.getElementById("fileStatus");
+
+        sendFileBtn.onclick = async () => {
+          const file = fileInput.files?.[0];
+          if (!file){
+            fileStatus.textContent = "ファイルを選んでね";
+            setTimeout(() => fileStatus.textContent = "", 2000);
             return;
           }
 
-          const { data: publicData } = supa.storage
-            .from("ticket-chat-files")
-            .getPublicUrl(path);
+          sendFileBtn.disabled = true;
+          fileStatus.textContent = "アップロード中…";
+          try{
+            const url = await uploadFile(currentTicket.id, file);
+            await sendMessage(currentTicket.id, "user", `ファイル送信：${file.name}`, url);
+            fileInput.value = "";
+            fileStatus.textContent = "送信した";
+            setTimeout(() => fileStatus.textContent = "", 2000);
+            await doRefresh();
+          }catch(e){
+            console.error(e);
+            fileStatus.textContent = "失敗：" + (e?.message || e);
+          }finally{
+            sendFileBtn.disabled = false;
+          }
+        };
 
-          fileUrl = publicData.publicUrl;
-          // fileName はここでは null のまま運用（元の名前を表に出さない）
-        }
-
-        const { error: insertError } = await supa.from("ticket_messages").insert({
-          ticket_id: currentTicketId,
-          from_role: "client",
-          body: body || null,
-          file_url: fileUrl,
-          file_name: fileName,
-        });
-
-        if (insertError) {
-          console.error("insert message error:", insertError);
-          statusEl.textContent = "メッセージの送信に失敗しました。";
-          sendBtn.disabled = false;
-          return;
-        }
-
-        // フォームをクリア
-        bodyEl.value = "";
-        fileEl.value = "";
-        statusEl.textContent = "送信しました。";
-
-        // メッセージ再読み込み
-        await loadChatMessages();
-      } catch (e) {
-        console.error("sendChatMessage error:", e);
-        statusEl.textContent = "エラーが発生しました。時間をおいてお試しください。";
-      } finally {
-        sendBtn.disabled = false;
-      }
-    }
-
-    async function initMyPage() {
-      document.getElementById("thisYear").textContent =
-        new Date().getFullYear();
-
-      const token = getTokenFromQuery();
-      if (!token) {
-        alert("URLに token が含まれていません。例：?token=testtoken123");
-        return;
-      }
-
-      try {
-        const t = await fetchMyPageData(token);
-        const ticketSerial = t.serial;
-        currentTicketId = t.id;
-        currentUserName = t.user_name || "ゲスト";
-
-        // ヘッダー
-        document.getElementById("userNameLabel").textContent =
-          currentUserName + " さん、こんにちは";
-        document.getElementById("welcomeTitle").textContent =
-          currentUserName + " さんの制作マイページ";
-        document.getElementById("ticketIdLabel").textContent = ticketSerial;
-
-        // プラン情報
-        document.getElementById("planNamePill").textContent =
-          "プラン：" + (t.plan_name || "未設定");
-        document.getElementById("planLeadTime").textContent =
-          t.plan_lead_time || "未設定";
-        document.getElementById("giftFrom").textContent =
-          t.gift_from || "（登録されていません）";
-
-        const planDesc =
-          t.plan_description ||
-          "このチケットの詳細説明は現在登録されていません。";
-        document.getElementById("planDescription").innerHTML =
-          planDesc +
-          "<br>通常納期は<span id='planLeadTimeInner'>" +
-          (t.plan_lead_time || "未設定") +
-          "</span>です。";
-
-        // ステータス
-        const statusInfo = getStatusInfo(t.status_step ?? 0);
-        document.getElementById("statusLabel").textContent = statusInfo.label;
-        document.getElementById("statusDetail").textContent =
-          statusInfo.detail;
-        document.getElementById("progressPercentLabel").textContent =
-          statusInfo.percent + "%";
-        document.getElementById("progressBarInner").style.width =
-          statusInfo.percent + "%";
-
-        // お知らせ（サンプル）
-        const noticeListEl = document.getElementById("noticeList");
-        noticeListEl.innerHTML = "";
-        const today = new Date().toISOString().slice(0, 10);
-        const notices = [
-          {
-            date: today,
-            title: "ようこそ！ヒアリングのご入力をお願いします。",
-            body: "楽曲タイトルと完成イメージをご入力いただけますと、制作がスムーズになります。",
-          },
-          {
-            date: today,
-            title: "納期目安について",
-            body:
-              "現在の納期目安は「" +
-              (t.plan_lead_time || "未設定") +
-              "」です。混雑状況により前後する可能性があります。",
-          },
-        ];
-        notices.forEach((n) => {
-          const li = document.createElement("li");
-          li.innerHTML =
-            '<span class="notice-date">' +
-            n.date +
-            "</span><strong>" +
-            n.title +
-            "</strong> " +
-            n.body;
-          noticeListEl.appendChild(li);
-        });
-
-        // ヒアリング（ローカル保存）
-        const saveStatus = document.getElementById("hearingSaveStatus");
-        const displayNameEl = document.getElementById("fieldDisplayName");
-        const songTitleEl = document.getElementById("fieldSongTitle");
-        const imageEl = document.getElementById("fieldImage");
-
-        const saved = loadHearing(ticketSerial);
-        if (saved) {
-          displayNameEl.value = saved.displayName || "";
-          songTitleEl.value = saved.songTitle || "";
-          imageEl.value = saved.image || "";
-          saveStatus.textContent =
-            "※ 前回入力した内容を読み込みました（この端末のみ）。";
-        }
-
-        document
-          .getElementById("saveHearingButton")
-          .addEventListener("click", () => {
-            const payload = {
-              displayName: displayNameEl.value,
-              songTitle: songTitleEl.value,
-              image: imageEl.value,
-              ticketSerial,
-            };
-            saveHearing(ticketSerial, payload);
-            saveStatus.textContent =
-              "※ この端末のブラウザ内に一時保存しました（運営にはまだ送信されていません）。";
-          });
-
-        // チャット初期化
-        document
-          .getElementById("chatForm")
-          .addEventListener("submit", sendChatMessage);
-
-        await loadChatMessages();
-
-        // 簡易ポーリング：15秒ごとに更新（任意）
-        setInterval(loadChatMessages, 15000);
-      } catch (e) {
+      }catch(e){
         console.error(e);
-        alert(e.message);
+        setTopAlert("読み込みに失敗しました。tokenが正しいか、Supabase設定を確認してください。");
       }
     }
 
-    document.addEventListener("DOMContentLoaded", initMyPage);
+    document.addEventListener("DOMContentLoaded", init);
   </script>
 </body>
 </html>
