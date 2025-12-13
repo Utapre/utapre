@@ -2,1009 +2,724 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>うたプレ 管理用チャット画面</title>
+  <title>うたプレ 管理画面</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- supabase-js v2 UMD -->
   <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
   <style>
-    :root {
-      --bg: #f5f5f7;
-      --card-bg: #ffffff;
-      --accent: #ff6fb5;
-      --accent-soft: #ffe3f1;
-      --accent-deep: #ff3f98;
-      --text-main: #222222;
-      --text-sub: #666666;
-      --border-soft: #e0e0e5;
-      --radius-xl: 20px;
-      --shadow-soft: 0 10px 24px rgba(0,0,0,0.08);
+    :root{
+      --bg:#f6f6f9;
+      --card:#fff;
+      --text:#222;
+      --sub:#666;
+      --line:#e7e7ee;
+      --accent:#ff6fb5;
+      --accent2:#ffc36f;
+      --ok:#24a148;
+      --ng:#e11d48;
+      --radius:18px;
+      --shadow:0 10px 26px rgba(0,0,0,.08);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      color:var(--text);
+      background: radial-gradient(circle at top, #ffeef7 0, var(--bg) 45%, var(--bg) 100%);
+      min-height:100vh;
+    }
+    .wrap{max-width:1100px;margin:0 auto;padding:18px 14px 40px}
+    header{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      margin-bottom:14px;
+    }
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{
+      width:34px;height:34px;border-radius:14px;
+      background:conic-gradient(from 180deg, #ff6fb5, #ffc36f, #6fb7ff, #ff6fb5);
+      box-shadow:0 10px 22px rgba(0,0,0,.18);
+      display:flex;align-items:center;justify-content:center;
+      color:#fff;font-weight:900;
+    }
+    .title{font-weight:800}
+    .sub{color:var(--sub);font-size:12px}
+    .pill{
+      font-size:11px;color:var(--sub);
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.8);
+      padding:6px 10px;border-radius:999px;
+      user-select:text;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    .grid{display:grid;grid-template-columns: 0.95fr 1.05fr;gap:14px}
+    @media (max-width:980px){ .grid{grid-template-columns:1fr} }
 
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #ffeef7 0, #f5f5f7 45%, #f5f5f7 100%);
-      color: var(--text-main);
-      min-height: 100vh;
+    .card{
+      background:var(--card);
+      border:1px solid rgba(255,255,255,.9);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:14px 14px;
+    }
+    .card h2{
+      margin:0 0 10px 0;
+      font-size:15px;
+    }
+    .info{color:var(--sub);font-size:12px;line-height:1.55}
+    .muted{color:var(--sub)}
+    .alert{
+      padding:10px 12px;border-radius:14px;
+      border:1px solid #ffd6e7;
+      background:#fff5fa;
+      font-size:12px; line-height:1.55;
+      margin-bottom:14px;
+      display:none;
     }
 
-    .app {
-      max-width: 1080px;
-      margin: 0 auto;
-      padding: 24px 16px 32px;
+    .btn{
+      border:none; cursor:pointer;
+      border-radius:999px;
+      padding:9px 14px;
+      font-size:12px; font-weight:800;
+      display:inline-flex; align-items:center; gap:8px;
+    }
+    .btn.primary{
+      color:#fff;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));
+      box-shadow:0 8px 18px rgba(0,0,0,.16);
+    }
+    .btn.ghost{
+      color:var(--sub);
+      background:rgba(255,255,255,.9);
+      border:1px solid var(--line);
+    }
+    .btn.danger{
+      color:#fff;
+      background:linear-gradient(90deg,#ff3b81,#ff6f6f);
+      box-shadow:0 8px 18px rgba(0,0,0,.14);
+    }
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+
+    input[type="text"], textarea, select{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:9px 10px;
+      font-size:13px;
+      outline:none;
+      background:rgba(255,255,255,.95);
+    }
+    textarea{min-height:78px;resize:vertical}
+    input:focus, textarea:focus, select:focus{
+      border-color:var(--accent);
+      box-shadow:0 0 0 1px rgba(255,111,181,.22);
     }
 
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
+    /* ticket list */
+    .searchRow{display:flex; gap:10px; align-items:center; margin-bottom:10px}
+    .list{
+      border:1px solid var(--line);
+      border-radius:14px;
+      overflow:auto;
+      max-height:520px;
+      background:#fafafe;
+    }
+    .item{
+      padding:10px 12px;
+      border-bottom:1px dashed var(--line);
+      cursor:pointer;
+      display:flex;
+      gap:10px;
+      justify-content:space-between;
+      align-items:flex-start;
+    }
+    .item:last-child{border-bottom:none}
+    .item:hover{background:#fff}
+    .item.active{background:#fff0f7}
+    .item .left{display:flex; flex-direction:column; gap:3px}
+    .item .serial{font-weight:900; font-size:12px}
+    .item .name{font-size:12px; color:var(--sub)}
+    .item .right{font-size:11px; color:var(--sub); white-space:nowrap}
+
+    /* ticket detail */
+    .kv{display:grid;grid-template-columns: 140px 1fr;gap:8px; font-size:13px; padding:6px 0;border-bottom:1px dashed var(--line)}
+    .kv:last-child{border-bottom:none}
+    .k{color:var(--sub)}
+    .v{font-weight:700}
+
+    /* hearing */
+    pre{
+      margin:0;
+      padding:10px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fafafe;
+      overflow:auto;
+      max-height:260px;
+      font-size:12px;
+      color:#333;
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    /* chat */
+    .chatbox{
+      height:330px;
+      overflow:auto;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px;
+      background:#fafafe;
     }
-
-    .brand-logo {
-      width: 32px;
-      height: 32px;
-      border-radius: 12px;
-      background: conic-gradient(from 180deg, #ff6fb5, #ffc36f, #6fb7ff, #ff6fb5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-weight: 800;
-      font-size: 18px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.16);
+    .msg{display:flex;margin:8px 0;gap:8px}
+    .msg.me{justify-content:flex-end}
+    .bubble{
+      max-width:82%;
+      padding:9px 10px;
+      border-radius:14px;
+      border:1px solid #ececf5;
+      background:#fff;
+      font-size:13px;
+      line-height:1.5;
+      word-break:break-word;
     }
-
-    .brand-title { font-size: 18px; font-weight: 700; }
-    .brand-sub { font-size: 11px; color: var(--text-sub); }
-
-    .header-right {
-      text-align: right;
-      font-size: 11px;
-      color: var(--text-sub);
+    .msg.me .bubble{
+      background:#fff7fb;
+      border-color:#ffd6e7;
     }
-
-    main {
-      display: grid;
-      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr);
-      gap: 18px;
+    .meta{font-size:11px;color:var(--sub);margin-top:4px}
+    .filelink{
+      display:inline-block;
+      margin-top:6px;
+      font-size:12px;
+      color:#0b63ce;
+      text-decoration:underline;
+      word-break:break-all;
     }
-
-    .card {
-      background: var(--card-bg);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow-soft);
-      padding: 18px 20px;
-      border: 1px solid rgba(255,255,255,0.9);
+    .chatinput{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap:10px;
+      margin-top:10px;
+      align-items:end;
     }
+    .chatinput textarea{min-height:52px}
 
-    .card-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
-    .card-sub { font-size: 12px; color: var(--text-sub); margin-bottom: 10px; }
-
-    .field {
-      margin-bottom: 10px;
-      font-size: 12px;
-    }
-
-    .field label {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 4px;
-    }
-
-    .field label span { font-weight: 500; }
-    .field label small { font-size: 10px; color: var(--text-sub); }
-
-    input[type="text"] {
-      width: 100%;
-      padding: 7px 9px;
-      border-radius: 10px;
-      border: 1px solid var(--border-soft);
-      font-size: 12px;
-      outline: none;
-      background: rgba(255,255,255,0.9);
-    }
-
-    input[type="text"]:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(255,111,181,0.2);
-    }
-
-    select {
-      width: 100%;
-      padding: 7px 9px;
-      border-radius: 10px;
-      border: 1px solid var(--border-soft);
-      font-size: 12px;
-      outline: none;
-      background: rgba(255,255,255,0.9);
-    }
-
-    select:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(255,111,181,0.2);
-    }
-
-    .btn {
-      border: none;
-      border-radius: 999px;
-      padding: 7px 14px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .btn-primary {
-      background: linear-gradient(90deg, #ff6fb5, #ffc36f);
-      color: #fff;
-      box-shadow: 0 6px 14px rgba(0,0,0,0.16);
-    }
-
-    .btn-ghost {
-      background: rgba(255,255,255,0.9);
-      border: 1px solid var(--border-soft);
-      color: var(--text-sub);
-    }
-
-    .ticket-info {
-      font-size: 12px;
-      line-height: 1.7;
-      border-radius: 14px;
-      background: #fafafe;
-      padding: 10px 12px;
-      border: 1px dashed #dedeee;
-      margin-top: 8px;
-    }
-
-    .ticket-label {
-      font-size: 11px;
-      color: var(--text-sub);
-    }
-
-    .ticket-value {
-      font-weight: 600;
-      margin-left: 4px;
-    }
-
-    .ticket-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--border-soft);
-      font-size: 11px;
-      margin-top: 6px;
-      background: #fff;
-    }
-
-    .status-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: var(--accent-soft);
-      color: var(--accent-deep);
-      font-size: 10px;
-      font-weight: 600;
-      margin-top: 6px;
-    }
-
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: var(--accent);
-    }
-
-    .small-text {
-      font-size: 11px;
-      color: var(--text-sub);
-      margin-top: 6px;
-    }
-
-    /* 最近開いたチケット一覧 */
-    .recent-title {
-      font-size: 11px;
-      color: var(--text-sub);
-      margin-top: 12px;
-      margin-bottom: 4px;
-    }
-
-    .recent-list {
-      max-height: 150px;
-      overflow-y: auto;
-      border-radius: 10px;
-      background: #fafafa;
-      border: 1px dashed #e2e2f0;
-      padding: 4px 4px;
-      font-size: 11px;
-    }
-
-    .recent-empty {
-      padding: 4px 6px;
-      color: #999;
-    }
-
-    .recent-item {
-      padding: 4px 6px;
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 8px;
-    }
-
-    .recent-item:hover {
-      background: #ffffff;
-    }
-
-    .recent-main {
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
-    }
-
-    .recent-serial {
-      font-weight: 600;
-    }
-
-    .recent-name {
-      color: var(--text-sub);
-    }
-
-    .recent-plan {
-      font-size: 10px;
-      color: #999;
-      white-space: nowrap;
-    }
-
-    /* チャット側 */
-
-    .chat-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 8px;
-    }
-
-    .chat-badge {
-      font-size: 11px;
-      color: var(--text-sub);
-    }
-
-    .chat-messages {
-      max-height: 380px;
-      min-height: 200px;
-      overflow-y: auto;
-      padding-right: 4px;
-      margin-bottom: 10px;
-      border-radius: 12px;
-      background: #fafafa;
-      border: 1px solid #ececf5;
-      padding: 10px 10px;
-    }
-
-    .chat-empty {
-      font-size: 12px;
-      color: var(--text-sub);
-      padding: 8px 4px;
-    }
-
-    .chat-row {
-      display: flex;
-      margin-bottom: 6px;
-    }
-
-    .chat-row.admin {
-      justify-content: flex-end;
-    }
-
-    .chat-row.client {
-      justify-content: flex-start;
-    }
-
-    .chat-bubble {
-      max-width: 80%;
-      padding: 7px 9px;
-      border-radius: 14px;
-      font-size: 12px;
-      line-height: 1.5;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.03);
-      background: #fff;
-    }
-
-    .chat-bubble.admin {
-      background: var(--accent-soft);
-      border-bottom-right-radius: 4px;
-    }
-
-    .chat-bubble.client {
-      background: #ffffff;
-      border-bottom-left-radius: 4px;
-    }
-
-    .chat-meta {
-      font-size: 10px;
-      color: var(--text-sub);
-      margin-top: 4px;
-      display: flex;
-      justify-content: space-between;
-      gap: 6px;
-    }
-
-    .chat-from-label {
-      font-weight: 600;
-    }
-
-    .chat-file {
-      margin-top: 4px;
-      font-size: 11px;
-    }
-
-    .chat-file a {
-      color: var(--accent-deep);
-      text-decoration: none;
-    }
-
-    .chat-file a:hover {
-      text-decoration: underline;
-    }
-
-    .chat-input-row {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 70px;
-      padding: 7px 9px;
-      border-radius: 10px;
-      border: 1px solid var(--border-soft);
-      font-size: 12px;
-      resize: vertical;
-      outline: none;
-      background: rgba(255,255,255,0.9);
-    }
-
-    textarea:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(255,111,181,0.2);
-    }
-
-    .chat-bottom-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .chat-file-input {
-      font-size: 11px;
-    }
-
-    .chat-status {
-      font-size: 11px;
-      color: var(--text-sub);
-      margin-top: 2px;
-    }
-
-    .badge-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: #f3f3ff;
-      color: var(--text-sub);
-      font-size: 10px;
-      margin-left: 6px;
-    }
-
-    @media (max-width: 900px) {
-      main {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
+    /* notice */
+    .noticeGrid{display:grid; gap:10px}
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+    .statusline{font-size:12px;color:var(--sub);min-height:18px}
   </style>
 </head>
+
 <body>
-  <div class="app">
+  <div class="wrap">
     <header>
       <div class="brand">
-        <div class="brand-logo">U</div>
+        <div class="logo">U</div>
         <div>
-          <div class="brand-title">うたプレ 管理用チャット画面</div>
-          <div class="brand-sub">チケット単位でのやりとりを確認・返信できます</div>
+          <div class="title">うたプレ 管理画面</div>
+          <div class="sub">チケット選択 → ヒアリング確認 / お知らせ / チャット返信</div>
         </div>
       </div>
-      <div class="header-right">
-        <div>非公開URL推奨（運営専用）</div>
-        <div id="adminHint"></div>
-      </div>
+      <div class="pill" id="adminHint">管理URLは非公開運用</div>
     </header>
 
-    <main>
-      <!-- 左：チケット情報・選択 -->
-      <section class="card">
-        <div class="card-title">チケットを選択</div>
-        <div class="card-sub">
-          シリアル番号から該当のチケットを読み込み、そのチケット専用のチャットを表示します。
+    <div id="topAlert" class="alert"></div>
+
+    <div class="grid">
+      <!-- LEFT: ticket list -->
+      <div class="card">
+        <h2>チケット一覧</h2>
+
+        <div class="searchRow">
+          <input type="text" id="searchBox" placeholder="検索：シリアル / 名前 / プラン" />
+          <button class="btn ghost" id="reloadBtn">更新</button>
         </div>
 
-        <div class="field">
-          <label>
-            <span>チケットシリアル番号</span>
-            <small>例）UTP-TEST-0001</small>
-          </label>
-          <input type="text" id="serialInput" placeholder="チケットに印字されているシリアルを入力" />
+        <div class="list" id="ticketList"></div>
+        <div class="info" style="margin-top:10px;">
+          ※ URLを知ってる人だけが開ける前提。運営用リンクは絶対に外に出さない。
         </div>
+      </div>
 
-        <button class="btn btn-primary" id="loadTicketButton">
-          このチケットを読み込む
-        </button>
+      <!-- RIGHT: detail + hearing + notice + chat -->
+      <div style="display:grid; gap:14px;">
+        <div class="card" id="detailCard" style="display:none;">
+          <h2>チケット詳細</h2>
+          <div id="ticketDetail"></div>
 
-        <div class="small-text" id="loadStatus" style="margin-top:8px;"></div>
-
-        <div class="ticket-info" id="ticketInfoBox" style="display:none;">
-          <div>
-            <span class="ticket-label">チケットID：</span>
-            <span class="ticket-value" id="ticketIdLabel">-</span>
-          </div>
-          <div>
-            <span class="ticket-label">シリアル：</span>
-            <span class="ticket-value" id="ticketSerialLabel">-</span>
-          </div>
-          <div>
-            <span class="ticket-label">お客様名：</span>
-            <span class="ticket-value" id="ticketUserNameLabel">-</span>
-          </div>
-          <div>
-            <span class="ticket-label">プレゼント元：</span>
-            <span class="ticket-value" id="ticketGiftFromLabel">-</span>
-          </div>
-          <div class="ticket-badge" id="ticketPlanBadge">
-            プラン：<span id="ticketPlanName">-</span>
-          </div>
-          <div class="status-chip" id="ticketStatusChip">
-            <span class="status-dot"></span>
-            <span id="ticketStatusText">ステータス -</span>
-          </div>
-
-          <div class="field" style="margin-top:10px;">
-            <label>
-              <span>ステータスを変更</span>
-              <small>変更後に「ステータスを更新」を押してください</small>
-            </label>
-            <select id="statusSelect">
-              <option value="0">① ヒアリング入力待ち</option>
-              <option value="1">② 制作中</option>
-              <option value="2">③ 仕上がり確認待ち</option>
-              <option value="3">④ 納品完了</option>
-            </select>
-          </div>
-
-          <button class="btn btn-ghost" id="updateStatusButton">
-            ステータスを更新
-          </button>
-
-          <div class="small-text" id="statusUpdateResult"></div>
-
-          <div class="small-text">
-            ここで選択されているチケットに対して、右側のチャットから返信が送信されます。
+          <div class="row" style="margin-top:10px;">
+            <div style="flex:1; min-width:220px;">
+              <div class="muted" style="font-size:12px; font-weight:800; margin-bottom:6px;">進行ステータス</div>
+              <select id="statusSelect">
+                <option value="0">0：ヒアリング入力待ち</option>
+                <option value="1">1：ヒアリング送信済み（確認中）</option>
+                <option value="2">2：制作準備中</option>
+                <option value="3">3：制作中</option>
+                <option value="4">4：確認・修正対応中</option>
+                <option value="5">5：納品準備中</option>
+                <option value="6">6：納品済み</option>
+              </select>
+            </div>
+            <button class="btn primary" id="saveStatusBtn">ステータス更新</button>
+            <span class="statusline" id="statusSaveMsg"></span>
           </div>
         </div>
 
-        <!-- 最近ひらいたチケット一覧 -->
-        <div class="recent-title">最近ひらいたチケット（このブラウザのみ）</div>
-        <div id="recentTickets" class="recent-list">
-          <div class="recent-empty">まだ履歴がありません。</div>
+        <div class="card" id="hearingCard" style="display:none;">
+          <h2>ヒアリング内容（送信済み）</h2>
+          <div class="info" style="margin-bottom:10px;">送信後ロックされる前提。ここは確認専用。</div>
+          <pre id="hearingPre">(未送信)</pre>
         </div>
-      </section>
 
-      <!-- 右：チャット -->
-      <section class="card">
-        <div class="chat-header">
-          <div class="card-title">
-            チャット（運営 ↔ 利用者）
-            <span class="badge-status" id="chatTicketLabel">チケット未選択</span>
+        <div class="card" id="noticeCard" style="display:none;">
+          <h2>お知らせ（マイページ表示）</h2>
+          <div class="info" style="margin-bottom:10px;">
+            全体 or このチケットだけに表示できる。重要度も付けられる。
           </div>
-          <div class="chat-badge">
-            管理者として送信します
-          </div>
-        </div>
 
-        <div id="chatMessages" class="chat-messages">
-          <div class="chat-empty">左側でチケットを選択すると、ここにメッセージが表示されます。</div>
-        </div>
-
-        <form id="chatForm">
-          <div class="chat-input-row">
-            <textarea
-              id="chatBody"
-              placeholder="返信内容を入力してください（例：ご依頼ありがとうございます。〇〇の件、承知しました など）"
-            ></textarea>
-
-            <div class="chat-bottom-row">
-              <div class="chat-file-input">
-                <label style="font-size:11px;">
-                  添付ファイル（任意）：
-                  <input type="file" id="chatFile" />
-                </label>
+          <div class="noticeGrid">
+            <div class="row">
+              <div style="flex:1; min-width:220px;">
+                <div class="muted" style="font-size:12px; font-weight:800; margin-bottom:6px;">対象</div>
+                <select id="noticeTarget">
+                  <option value="all">全体お知らせ</option>
+                  <option value="ticket">このチケットだけ</option>
+                </select>
               </div>
-
-              <button type="submit" class="btn btn-primary" id="chatSendButton">
-                運営として送信
-              </button>
+              <div style="width:180px;">
+                <div class="muted" style="font-size:12px; font-weight:800; margin-bottom:6px;">重要度</div>
+                <select id="noticeSeverity">
+                  <option value="0">通常</option>
+                  <option value="1">重要</option>
+                  <option value="2">緊急</option>
+                </select>
+              </div>
             </div>
-            <div class="chat-status" id="chatStatus">
-              ※ チケットを選択してから送信してください。
+
+            <div>
+              <div class="muted" style="font-size:12px; font-weight:800; margin-bottom:6px;">タイトル</div>
+              <input type="text" id="noticeTitle" placeholder="例：制作進行について" />
+            </div>
+
+            <div>
+              <div class="muted" style="font-size:12px; font-weight:800; margin-bottom:6px;">本文</div>
+              <textarea id="noticeBody" placeholder="お知らせ内容"></textarea>
+            </div>
+
+            <div class="row">
+              <button class="btn primary" id="saveNoticeBtn">保存</button>
+              <button class="btn danger" id="disableTicketNoticeBtn">このチケットのお知らせを非表示</button>
+              <span class="statusline" id="noticeMsg"></span>
+            </div>
+
+            <div class="info">
+              ※「非表示」は<strong>このチケット向け</strong>のみ一括でOFFにする（全体お知らせは消えない）。
             </div>
           </div>
-        </form>
-      </section>
-    </main>
+        </div>
+
+        <div class="card" id="chatCard" style="display:none;">
+          <h2>チャット（管理用）</h2>
+          <div class="info" style="margin-bottom:10px;">
+            お客さんとの制作やりとりをここで返信。添付ファイルは今はユーザー側から送ってもらう運用。
+          </div>
+
+          <div class="chatbox" id="chatBox"></div>
+
+          <div class="chatinput">
+            <textarea id="chatText" placeholder="返信を書いて送信"></textarea>
+            <button class="btn primary" id="sendBtn">送信</button>
+          </div>
+          <div class="statusline" id="chatMsg"></div>
+        </div>
+
+        <div class="card" id="emptyCard">
+          <h2>使い方</h2>
+          <div class="info">
+            左の一覧からチケットを選ぶ → 右にヒアリング/お知らせ/チャットが出る。<br>
+            管理URLは外に出さない（ブックマーク運用）。
+          </div>
+        </div>
+
+      </div>
+    </div>
   </div>
 
   <script>
-    // ▼ あなたの Supabase プロジェクト情報 ▼
+    // =====================
+    // Supabase
+    // =====================
     const SUPABASE_URL = "https://nnexyynjimfpdcqeuxgn.supabase.co";
     const SUPABASE_ANON_KEY =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5uZXh5eW5qaW1mcGRjcWV1eGduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0NDAxMzAsImV4cCI6MjA4MTAxNjEzMH0.ZWAsrtzHAf0A9wDAfXPUKTlwQ92G1KhgUWFAyLULl9c";
 
     const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let currentTicketId = null;
-    let currentTicketSerial = null;
-    let currentStatusStep = null;
+    // =====================
+    // State
+    // =====================
+    let tickets = [];
+    let currentTicket = null;
 
-    const HISTORY_KEY = "utapre_admin_ticket_history";
-    const HISTORY_MAX = 20;
-
-    function getStatusInfo(step) {
-      switch (step) {
-        case 0:
-          return { label: "ヒアリング入力待ち" };
-        case 1:
-          return { label: "制作中" };
-        case 2:
-          return { label: "仕上がり確認待ち" };
-        case 3:
-          return { label: "納品完了" };
-        default:
-          return { label: "ステータス未設定" };
-      }
+    // =====================
+    // Helpers
+    // =====================
+    function showAlert(msg){
+      const el = document.getElementById("topAlert");
+      el.textContent = msg;
+      el.style.display = "block";
+      setTimeout(()=>{ el.style.display = "none"; }, 4000);
     }
 
-    function formatDateTime(ts) {
-      if (!ts) return "";
-      const d = new Date(ts);
-      if (Number.isNaN(d.getTime())) return "";
-      return d.toLocaleString("ja-JP");
+    function escapeHtml(str){
+      return (str ?? "").toString()
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
     }
 
-    // --- 最近ひらいたチケット履歴まわり ---
-
-    function loadHistory() {
-      const raw = localStorage.getItem(HISTORY_KEY);
-      if (!raw) return [];
-      try {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) return parsed;
-        return [];
-      } catch {
-        return [];
-      }
+    function formatTime(iso){
+      try{
+        return new Date(iso).toLocaleString("ja-JP",{hour12:false});
+      }catch{ return ""; }
     }
 
-    function saveHistory(list) {
-      localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+    function statusText(step){
+      const map = {
+        0: "ヒアリング入力待ち",
+        1: "ヒアリング送信済み（確認中）",
+        2: "制作準備中",
+        3: "制作中",
+        4: "確認・修正対応中",
+        5: "納品準備中",
+        6: "納品済み"
+      };
+      return map[step] ?? `進行：${step}`;
     }
 
-    function addHistoryEntry(ticket) {
-      const list = loadHistory();
-      const filtered = list.filter((item) => item.serial !== ticket.serial);
-      filtered.unshift({
-        id: ticket.id,
-        serial: ticket.serial,
-        user_name: ticket.user_name || "",
-        plan_name: ticket.plan_name || "",
-        updated_at: new Date().toISOString(),
+    // =====================
+    // Load tickets
+    // =====================
+    async function loadTickets(){
+      const { data, error } = await supa
+        .from("tickets")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      tickets = data || [];
+      renderTicketList();
+    }
+
+    function renderTicketList(){
+      const q = (document.getElementById("searchBox").value || "").trim().toLowerCase();
+      const list = document.getElementById("ticketList");
+      list.innerHTML = "";
+
+      const filtered = tickets.filter(t=>{
+        const hay = `${t.serial||""} ${t.user_name||""} ${t.plan_name||""}`.toLowerCase();
+        return !q || hay.includes(q);
       });
-      const trimmed = filtered.slice(0, HISTORY_MAX);
-      saveHistory(trimmed);
-      renderHistory();
-    }
 
-    function renderHistory() {
-      const listEl = document.getElementById("recentTickets");
-      const list = loadHistory();
-
-      if (!list.length) {
-        listEl.innerHTML =
-          '<div class="recent-empty">まだ履歴がありません。</div>';
-        return;
-      }
-
-      listEl.innerHTML = "";
-      list.forEach((item) => {
-        const row = document.createElement("div");
-        row.className = "recent-item";
-
-        const main = document.createElement("div");
-        main.className = "recent-main";
-
-        const serialSpan = document.createElement("span");
-        serialSpan.className = "recent-serial";
-        serialSpan.textContent = item.serial;
-
-        const nameSpan = document.createElement("span");
-        nameSpan.className = "recent-name";
-        nameSpan.textContent =
-          (item.user_name || "（お名前未入力）") +
-          (item.plan_name ? " / " + item.plan_name : "");
-
-        main.appendChild(serialSpan);
-        main.appendChild(nameSpan);
-
-        const planSpan = document.createElement("span");
-        planSpan.className = "recent-plan";
-        planSpan.textContent = "ID:" + item.id;
-
-        row.appendChild(main);
-        row.appendChild(planSpan);
-
-        row.addEventListener("click", () => {
-          const serialInput = document.getElementById("serialInput");
-          serialInput.value = item.serial;
-          loadTicketBySerial();
-        });
-
-        listEl.appendChild(row);
+      filtered.forEach(t=>{
+        const div = document.createElement("div");
+        div.className = "item" + (currentTicket?.id === t.id ? " active" : "");
+        div.innerHTML = `
+          <div class="left">
+            <div class="serial">${escapeHtml(t.serial || "-")}</div>
+            <div class="name">${escapeHtml(t.user_name || "（未入力）")} / ${escapeHtml(t.plan_name || "（プラン未設定）")}</div>
+          </div>
+          <div class="right">${escapeHtml(statusText(t.status_step ?? 0))}</div>
+        `;
+        div.onclick = ()=>selectTicket(t);
+        list.appendChild(div);
       });
-    }
 
-    // --- チケット読み込み ---
-
-    async function loadTicketBySerial() {
-      const serialEl = document.getElementById("serialInput");
-      const statusEl = document.getElementById("loadStatus");
-      const infoBox = document.getElementById("ticketInfoBox");
-      const chatTicketLabel = document.getElementById("chatTicketLabel");
-      const statusSelect = document.getElementById("statusSelect");
-      const statusUpdateResult = document.getElementById("statusUpdateResult");
-
-      const serial = serialEl.value.trim();
-      if (!serial) {
-        statusEl.textContent = "シリアル番号を入力してください。";
-        infoBox.style.display = "none";
-        currentTicketId = null;
-        currentTicketSerial = null;
-        chatTicketLabel.textContent = "チケット未選択";
-        return;
-      }
-
-      statusEl.textContent = "チケット情報を取得中です…";
-      infoBox.style.display = "none";
-      currentTicketId = null;
-      currentTicketSerial = null;
-      chatTicketLabel.textContent = "チケット未選択";
-      statusUpdateResult.textContent = "";
-
-      try {
-        const { data, error } = await supa
-          .from("tickets")
-          .select("*")
-          .eq("serial", serial)
-          .limit(1);
-
-        if (error) {
-          console.error("loadTicket error:", error);
-          statusEl.textContent = "エラーが発生しました：" + error.message;
-          return;
-        }
-
-        if (!data || data.length === 0) {
-          statusEl.textContent =
-            "該当するチケットが見つかりませんでした。シリアルを確認してください。";
-          return;
-        }
-
-        const t = data[0];
-        currentTicketId = t.id;
-        currentTicketSerial = t.serial;
-        currentStatusStep = t.status_step ?? 0;
-
-        // 履歴に追加
-        addHistoryEntry(t);
-
-        // 情報表示
-        document.getElementById("ticketIdLabel").textContent = t.id;
-        document.getElementById("ticketSerialLabel").textContent = t.serial;
-        document.getElementById("ticketUserNameLabel").textContent =
-          t.user_name || "（未入力）";
-        document.getElementById("ticketGiftFromLabel").textContent =
-          t.gift_from || "（未入力）";
-        document.getElementById("ticketPlanName").textContent =
-          t.plan_name || "未設定";
-
-        const st = getStatusInfo(currentStatusStep);
-        document.getElementById("ticketStatusText").textContent =
-          st.label || "ステータス未設定";
-
-        // セレクトボックスに現在のステータスを反映
-        statusSelect.value = String(currentStatusStep);
-
-        infoBox.style.display = "block";
-        statusEl.textContent = "チケット情報を読み込みました。";
-        chatTicketLabel.textContent = "現在：" + t.serial;
-
-        // チャット読み込み
-        await loadChatMessages();
-      } catch (e) {
-        console.error(e);
-        statusEl.textContent = "不明なエラーが発生しました。";
+      if (filtered.length === 0){
+        const empty = document.createElement("div");
+        empty.className = "item";
+        empty.style.cursor = "default";
+        empty.innerHTML = `<div class="muted">該当なし</div>`;
+        list.appendChild(empty);
       }
     }
 
-    // --- チャット ---
+    // =====================
+    // Ticket select
+    // =====================
+    async function selectTicket(t){
+      currentTicket = t;
+      renderTicketList();
 
-    async function loadChatMessages() {
-      const listEl = document.getElementById("chatMessages");
+      document.getElementById("emptyCard").style.display = "none";
+      document.getElementById("detailCard").style.display = "block";
+      document.getElementById("hearingCard").style.display = "block";
+      document.getElementById("noticeCard").style.display = "block";
+      document.getElementById("chatCard").style.display = "block";
 
-      if (!currentTicketId) {
-        listEl.innerHTML =
-          '<div class="chat-empty">左側でチケットを選択すると、ここにメッセージが表示されます。</div>';
-        return;
-      }
+      // detail
+      const detail = document.getElementById("ticketDetail");
+      detail.innerHTML = `
+        <div class="kv"><div class="k">シリアル</div><div class="v">${escapeHtml(t.serial||"-")}</div></div>
+        <div class="kv"><div class="k">お名前</div><div class="v">${escapeHtml(t.user_name||"-")}</div></div>
+        <div class="kv"><div class="k">プレゼント</div><div class="v">${escapeHtml(t.gift_from||"（なし）")}</div></div>
+        <div class="kv"><div class="k">プラン</div><div class="v">${escapeHtml(t.plan_name||"-")}</div></div>
+        <div class="kv"><div class="k">納期目安</div><div class="v">${escapeHtml(t.plan_lead_time||"（未設定）")}</div></div>
+        <div class="kv"><div class="k">内容</div><div class="v">${escapeHtml(t.plan_description||"（未設定）")}</div></div>
+      `;
 
-      listEl.innerHTML = '<div class="chat-empty">メッセージを取得中です…</div>';
+      // status select
+      document.getElementById("statusSelect").value = String(t.status_step ?? 0);
+      document.getElementById("statusSaveMsg").textContent = "";
+
+      // load hearing / chat
+      await loadHearing(t.id);
+      await loadChat(t.id);
+    }
+
+    async function loadHearing(ticketId){
+      const pre = document.getElementById("hearingPre");
+      pre.textContent = "(読み込み中…)";
 
       const { data, error } = await supa
-        .from("ticket_messages")
+        .from("ticket_hearings")
         .select("*")
-        .eq("ticket_id", currentTicketId)
-        .order("created_at", { ascending: true });
+        .eq("ticket_id", ticketId)
+        .maybeSingle();
 
-      if (error) {
-        console.error("loadChatMessages error:", error);
-        listEl.innerHTML =
-          '<div class="chat-empty">メッセージの取得に失敗しました。</div>';
+      if (error){
+        pre.textContent = "(取得失敗)";
+        console.error(error);
         return;
       }
 
-      if (!data || data.length === 0) {
-        listEl.innerHTML =
-          '<div class="chat-empty">このチケットには、まだメッセージがありません。</div>';
+      if (!data){
+        pre.textContent = "(未送信)";
         return;
       }
 
-      listEl.innerHTML = "";
-
-      data.forEach((msg) => {
-        const row = document.createElement("div");
-        row.className =
-          "chat-row " + (msg.from_role === "admin" ? "admin" : "client");
-
-        const bubble = document.createElement("div");
-        bubble.className =
-          "chat-bubble " + (msg.from_role === "admin" ? "admin" : "client");
-
-        const body = document.createElement("div");
-        body.textContent = msg.body || "(本文なし)";
-        bubble.appendChild(body);
-
-        if (msg.file_url) {
-          const fileDiv = document.createElement("div");
-          fileDiv.className = "chat-file";
-          const a = document.createElement("a");
-          a.href = msg.file_url;
-          a.target = "_blank";
-          a.rel = "noopener noreferrer";
-
-          let label = "添付ファイルを開く";
-          if (msg.file_url.match(/\.(png|jpe?g|gif|webp)$/i)) {
-            label = "画像ファイルを開く";
-          } else if (msg.file_url.match(/\.(mp3|wav|ogg|m4a)$/i)) {
-            label = "音声ファイルを開く";
-          } else if (msg.file_url.match(/\.(mp4|mov|webm)$/i)) {
-            label = "動画ファイルを開く";
-          }
-
-          a.textContent = label;
-          fileDiv.appendChild(a);
-          bubble.appendChild(fileDiv);
-        }
-
-        const meta = document.createElement("div");
-        meta.className = "chat-meta";
-
-        const fromLabel = document.createElement("span");
-        fromLabel.className = "chat-from-label";
-        fromLabel.textContent =
-          msg.from_role === "admin" ? "運営" : "利用者";
-
-        const timeLabel = document.createElement("span");
-        timeLabel.textContent = formatDateTime(msg.created_at);
-
-        meta.appendChild(fromLabel);
-        meta.appendChild(timeLabel);
-
-        bubble.appendChild(meta);
-        row.appendChild(bubble);
-        listEl.appendChild(row);
-      });
-
-      listEl.scrollTop = listEl.scrollHeight;
+      pre.textContent = JSON.stringify(data.hearing_data, null, 2);
     }
 
-    async function sendAdminMessage(event) {
-      event.preventDefault();
-      const statusEl = document.getElementById("chatStatus");
-      const bodyEl = document.getElementById("chatBody");
-      const fileEl = document.getElementById("chatFile");
-      const sendBtn = document.getElementById("chatSendButton");
+    // =====================
+    // Status update
+    // =====================
+    document.getElementById("saveStatusBtn").onclick = async ()=>{
+      if (!currentTicket) return;
+      const btn = document.getElementById("saveStatusBtn");
+      const msg = document.getElementById("statusSaveMsg");
+      const newStep = Number(document.getElementById("statusSelect").value);
 
-      if (!currentTicketId) {
-        statusEl.textContent = "まず左側でチケットを選択してください。";
-        return;
-      }
+      btn.disabled = true;
+      msg.textContent = "更新中…";
 
-      const body = bodyEl.value.trim();
-      const file = fileEl.files[0] || null;
-
-      if (!body && !file) {
-        statusEl.textContent =
-          "返信テキストかファイルのどちらかは入力してください。";
-        return;
-      }
-
-      statusEl.textContent = "送信中です…";
-      sendBtn.disabled = true;
-
-      let fileUrl = null;
-      let fileName = null; // 利用者画面と同じく、名前は出さない運用
-
-      try {
-        if (file) {
-          const originalName = file.name;
-          const extMatch = originalName.match(/\.([^.]+)$/);
-          const ext = extMatch ? "." + extMatch[1] : "";
-          const safeBase = "file_" + Date.now();
-          const path = `${currentTicketId}/${safeBase}${ext}`;
-
-          const { data: uploaded, error: uploadError } = await supa.storage
-            .from("ticket-chat-files")
-            .upload(path, file, { upsert: true });
-
-          if (uploadError) {
-            console.error("upload error:", uploadError);
-            statusEl.textContent =
-              "ファイルのアップロードに失敗しました：" + uploadError.message;
-            sendBtn.disabled = false;
-            return;
-          }
-
-          const { data: publicData } = supa.storage
-            .from("ticket-chat-files")
-            .getPublicUrl(path);
-
-          fileUrl = publicData.publicUrl;
-        }
-
-        const { error: insertError } = await supa.from("ticket_messages").insert({
-          ticket_id: currentTicketId,
-          from_role: "admin",
-          body: body || null,
-          file_url: fileUrl,
-          file_name: fileName,
-        });
-
-        if (insertError) {
-          console.error("insert message error:", insertError);
-          statusEl.textContent = "メッセージの送信に失敗しました。";
-          sendBtn.disabled = false;
-          return;
-        }
-
-        bodyEl.value = "";
-        fileEl.value = "";
-        statusEl.textContent = "送信しました。";
-
-        await loadChatMessages();
-      } catch (e) {
-        console.error("sendAdminMessage error:", e);
-        statusEl.textContent =
-          "エラーが発生しました。時間をおいてお試しください。";
-      } finally {
-        sendBtn.disabled = false;
-      }
-    }
-
-    // --- ステータス更新 ---
-
-    async function updateTicketStatus() {
-      const resultEl = document.getElementById("statusUpdateResult");
-      const statusSelect = document.getElementById("statusSelect");
-      const statusTextEl = document.getElementById("ticketStatusText");
-
-      if (!currentTicketId) {
-        resultEl.textContent = "まずチケットを読み込んでください。";
-        return;
-      }
-
-      const newStep = parseInt(statusSelect.value, 10);
-      if (Number.isNaN(newStep)) {
-        resultEl.textContent = "ステータスの値が不正です。";
-        return;
-      }
-
-      resultEl.textContent = "ステータスを更新中です…";
-
-      try {
+      try{
         const { error } = await supa
           .from("tickets")
           .update({ status_step: newStep })
-          .eq("id", currentTicketId);
+          .eq("id", currentTicket.id);
 
-        if (error) {
-          console.error("update status error:", error);
-          resultEl.textContent = "更新に失敗しました：" + error.message;
-          return;
+        if (error) throw error;
+
+        // state update
+        currentTicket.status_step = newStep;
+        msg.textContent = "更新した";
+        setTimeout(()=>msg.textContent="", 2000);
+        renderTicketList();
+      }catch(e){
+        console.error(e);
+        msg.textContent = "失敗：" + (e?.message || e);
+      }finally{
+        btn.disabled = false;
+      }
+    };
+
+    // =====================
+    // Notice
+    // =====================
+    document.getElementById("saveNoticeBtn").onclick = async ()=>{
+      if (!currentTicket) return;
+
+      const btn = document.getElementById("saveNoticeBtn");
+      const msg = document.getElementById("noticeMsg");
+      const target = document.getElementById("noticeTarget").value;
+      const sev = Number(document.getElementById("noticeSeverity").value);
+      const title = document.getElementById("noticeTitle").value || "";
+      const body = document.getElementById("noticeBody").value || "";
+
+      if (!body.trim()){
+        msg.textContent = "本文は必須";
+        return;
+      }
+
+      btn.disabled = true;
+      msg.textContent = "保存中…";
+
+      try{
+        const payload = {
+          ticket_id: target === "ticket" ? currentTicket.id : null,
+          title,
+          body,
+          severity: sev,
+          is_active: true
+        };
+
+        const { error } = await supa.from("ticket_notices").insert(payload);
+        if (error) throw error;
+
+        msg.textContent = "保存した（マイページに反映される）";
+        setTimeout(()=>msg.textContent="", 2500);
+
+        // clear inputs a bit
+        document.getElementById("noticeTitle").value = "";
+        document.getElementById("noticeBody").value = "";
+      }catch(e){
+        console.error(e);
+        msg.textContent = "失敗：" + (e?.message || e);
+      }finally{
+        btn.disabled = false;
+      }
+    };
+
+    document.getElementById("disableTicketNoticeBtn").onclick = async ()=>{
+      if (!currentTicket) return;
+
+      const btn = document.getElementById("disableTicketNoticeBtn");
+      const msg = document.getElementById("noticeMsg");
+
+      btn.disabled = true;
+      msg.textContent = "非表示中…";
+
+      try{
+        const { error } = await supa
+          .from("ticket_notices")
+          .update({ is_active:false })
+          .eq("ticket_id", currentTicket.id);
+
+        if (error) throw error;
+
+        msg.textContent = "このチケット向けお知らせを非表示にした";
+        setTimeout(()=>msg.textContent="", 2500);
+      }catch(e){
+        console.error(e);
+        msg.textContent = "失敗：" + (e?.message || e);
+      }finally{
+        btn.disabled = false;
+      }
+    };
+
+    // =====================
+    // Chat
+    // =====================
+    function renderChat(list){
+      const box = document.getElementById("chatBox");
+      box.innerHTML = "";
+
+      list.forEach(m=>{
+        const isMe = (m.sender === "admin");
+        const wrap = document.createElement("div");
+        wrap.className = "msg" + (isMe ? " me" : "");
+
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+
+        const body = document.createElement("div");
+        body.innerHTML = escapeHtml(m.message || "").replaceAll("\n","<br>");
+        bubble.appendChild(body);
+
+        if (m.file_url){
+          const a = document.createElement("a");
+          a.className = "filelink";
+          a.href = m.file_url;
+          a.target = "_blank";
+          a.rel = "noreferrer";
+          a.textContent = "添付ファイルを開く";
+          bubble.appendChild(a);
         }
 
-        currentStatusStep = newStep;
-        const st = getStatusInfo(newStep);
-        statusTextEl.textContent = st.label;
-        resultEl.textContent = "ステータスを更新しました。";
-      } catch (e) {
-        console.error(e);
-        resultEl.textContent = "不明なエラーが発生しました。";
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.textContent = `${m.sender ?? ""} ・ ${formatTime(m.created_at)}`;
+        bubble.appendChild(meta);
+
+        wrap.appendChild(bubble);
+        box.appendChild(wrap);
+      });
+
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function loadChat(ticketId){
+      const { data, error } = await supa
+        .from("ticket_messages")
+        .select("*")
+        .eq("ticket_id", ticketId)
+        .order("created_at", { ascending: true });
+
+      if (error){
+        console.error(error);
+        return;
       }
+      renderChat(data || []);
     }
 
-    function initAdminPage() {
-      const now = new Date();
-      document.getElementById("adminHint").textContent =
-        "ログイン中のブラウザのみ利用してください（" +
-        now.toLocaleString("ja-JP") +
-        "）";
+    document.getElementById("sendBtn").onclick = async ()=>{
+      if (!currentTicket) return;
 
-      document
-        .getElementById("loadTicketButton")
-        .addEventListener("click", loadTicketBySerial);
+      const btn = document.getElementById("sendBtn");
+      const msg = document.getElementById("chatMsg");
+      const ta = document.getElementById("chatText");
+      const text = ta.value.trim();
+      if (!text) return;
 
-      document
-        .getElementById("chatForm")
-        .addEventListener("submit", sendAdminMessage);
+      btn.disabled = true;
+      msg.textContent = "送信中…";
 
-      document
-        .getElementById("updateStatusButton")
-        .addEventListener("click", updateTicketStatus);
+      try{
+        const { error } = await supa.from("ticket_messages").insert({
+          ticket_id: currentTicket.id,
+          sender: "admin",
+          message: text
+        });
+        if (error) throw error;
 
-      // 履歴の初期描画
-      renderHistory();
-    }
+        ta.value = "";
+        msg.textContent = "送信した";
+        setTimeout(()=>msg.textContent="", 2000);
+        await loadChat(currentTicket.id);
+      }catch(e){
+        console.error(e);
+        msg.textContent = "失敗：" + (e?.message || e);
+      }finally{
+        btn.disabled = false;
+      }
+    };
 
-    document.addEventListener("DOMContentLoaded", initAdminPage);
+    // =====================
+    // Boot
+    // =====================
+    document.getElementById("reloadBtn").onclick = async ()=>{
+      try{
+        await loadTickets();
+        showAlert("一覧を更新した");
+      }catch(e){
+        console.error(e);
+        showAlert("更新失敗：" + (e?.message || e));
+      }
+    };
+
+    document.getElementById("searchBox").addEventListener("input", renderTicketList);
+
+    (async ()=>{
+      try{
+        await loadTickets();
+      }catch(e){
+        console.error(e);
+        showAlert("読み込みに失敗：" + (e?.message || e));
+      }
+    })();
   </script>
 </body>
 </html>
