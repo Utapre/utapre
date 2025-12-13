@@ -207,6 +207,31 @@
     .noticeGrid{display:grid; gap:10px}
     .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
     .statusline{font-size:12px;color:var(--sub);min-height:18px}
+
+    .noticeLayout{display:grid; grid-template-columns: 0.95fr 1.05fr; gap:12px}
+    @media (max-width:980px){ .noticeLayout{grid-template-columns:1fr} }
+    .noticeList{max-height:260px}
+    .nitem{
+      padding:10px 12px;
+      border-bottom:1px dashed var(--line);
+      cursor:pointer;
+      background:#fafafe;
+    }
+    .nitem:last-child{border-bottom:none}
+    .nitem:hover{background:#fff}
+    .nitem.active{background:#fff0f7}
+    .ntag{font-weight:900;font-size:12px}
+    .nsub{font-size:11px;color:var(--sub);margin-top:3px}
+    .nbadge{
+      display:inline-block;
+      padding:2px 8px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      font-size:11px;
+      color:var(--sub);
+      background:#fff;
+      margin-right:6px;
+    }
   </style>
 </head>
 
@@ -217,16 +242,16 @@
         <div class="logo">U</div>
         <div>
           <div class="title">うたプレ 管理画面</div>
-          <div class="sub">チケット選択 → ヒアリング確認 / お知らせ / チャット返信</div>
+          <div class="sub">チケット選択 → ヒアリング確認 / お知らせ管理 / チャット返信</div>
         </div>
       </div>
-      <div class="pill" id="adminHint">管理URLは非公開運用</div>
+      <div class="pill">管理URLは非公開運用</div>
     </header>
 
     <div id="topAlert" class="alert"></div>
 
     <div class="grid">
-      <!-- LEFT: ticket list -->
+      <!-- LEFT -->
       <div class="card">
         <h2>チケット一覧</h2>
 
@@ -241,7 +266,7 @@
         </div>
       </div>
 
-      <!-- RIGHT: detail + hearing + notice + chat -->
+      <!-- RIGHT -->
       <div style="display:grid; gap:14px;">
         <div class="card" id="detailCard" style="display:none;">
           <h2>チケット詳細</h2>
@@ -272,48 +297,69 @@
         </div>
 
         <div class="card" id="noticeCard" style="display:none;">
-          <h2>お知らせ（マイページ表示）</h2>
+          <h2>お知らせ（投稿済みを選んで消せる）</h2>
           <div class="info" style="margin-bottom:10px;">
-            全体 or このチケットだけに表示できる。重要度も付けられる。
+            左：投稿済み一覧（対象に応じて切り替え）／右：新規投稿・編集・個別非表示。
           </div>
 
-          <div class="noticeGrid">
-            <div class="row">
-              <div style="flex:1; min-width:220px;">
-                <div class="muted" style="font-size:12px; font-weight:800; margin-bottom:6px;">対象</div>
-                <select id="noticeTarget">
-                  <option value="all">全体お知らせ</option>
-                  <option value="ticket">このチケットだけ</option>
-                </select>
+          <div class="noticeLayout">
+            <!-- notice list -->
+            <div>
+              <div class="row" style="margin-bottom:10px;">
+                <button class="btn ghost" id="refreshNoticesBtn">一覧更新</button>
+                <span class="statusline" id="noticeListMsg"></span>
               </div>
-              <div style="width:180px;">
-                <div class="muted" style="font-size:12px; font-weight:800; margin-bottom:6px;">重要度</div>
-                <select id="noticeSeverity">
-                  <option value="0">通常</option>
-                  <option value="1">重要</option>
-                  <option value="2">緊急</option>
-                </select>
+
+              <div class="list noticeList" id="noticeList"></div>
+              <div class="info" style="margin-top:8px;">
+                ※「全体」= ticket_id が NULL / 「個別」= ticket_id が選択チケット
               </div>
             </div>
 
-            <div>
-              <div class="muted" style="font-size:12px; font-weight:800; margin-bottom:6px;">タイトル</div>
-              <input type="text" id="noticeTitle" placeholder="例：制作進行について" />
-            </div>
+            <!-- notice editor -->
+            <div class="noticeGrid">
+              <div class="row">
+                <div style="flex:1; min-width:220px;">
+                  <div class="muted" style="font-size:12px; font-weight:800; margin-bottom:6px;">対象</div>
+                  <select id="noticeTarget">
+                    <option value="all">全体お知らせ</option>
+                    <option value="ticket">このチケットだけ</option>
+                  </select>
+                </div>
+                <div style="width:180px;">
+                  <div class="muted" style="font-size:12px; font-weight:800; margin-bottom:6px;">重要度</div>
+                  <select id="noticeSeverity">
+                    <option value="0">通常</option>
+                    <option value="1">重要</option>
+                    <option value="2">緊急</option>
+                  </select>
+                </div>
+              </div>
 
-            <div>
-              <div class="muted" style="font-size:12px; font-weight:800; margin-bottom:6px;">本文</div>
-              <textarea id="noticeBody" placeholder="お知らせ内容"></textarea>
-            </div>
+              <div>
+                <div class="muted" style="font-size:12px; font-weight:800; margin-bottom:6px;">タイトル</div>
+                <input type="text" id="noticeTitle" placeholder="例：制作進行について" />
+              </div>
 
-            <div class="row">
-              <button class="btn primary" id="saveNoticeBtn">保存</button>
-              <button class="btn danger" id="disableTicketNoticeBtn">このチケットのお知らせを非表示</button>
-              <span class="statusline" id="noticeMsg"></span>
-            </div>
+              <div>
+                <div class="muted" style="font-size:12px; font-weight:800; margin-bottom:6px;">本文</div>
+                <textarea id="noticeBody" placeholder="お知らせ内容"></textarea>
+              </div>
 
-            <div class="info">
-              ※「非表示」は<strong>このチケット向け</strong>のみ一括でOFFにする（全体お知らせは消えない）。
+              <div class="row">
+                <button class="btn primary" id="saveNoticeBtn">新規保存</button>
+                <button class="btn ghost" id="updateNoticeBtn" disabled>選択中を更新</button>
+                <button class="btn danger" id="disableSelectedNoticeBtn" disabled>選択中を非表示</button>
+              </div>
+              <div class="row">
+                <button class="btn ghost" id="clearNoticeSelectionBtn">選択解除</button>
+                <span class="statusline" id="noticeMsg"></span>
+              </div>
+
+              <div class="info">
+                ・「非表示」は <b>is_active=false</b>（履歴は残る）<br>
+                ・選択してない状態では「新規保存」だけ使える
+              </div>
             </div>
           </div>
         </div>
@@ -321,7 +367,7 @@
         <div class="card" id="chatCard" style="display:none;">
           <h2>チャット（管理用）</h2>
           <div class="info" style="margin-bottom:10px;">
-            お客さんとの制作やりとりをここで返信。添付ファイルは今はユーザー側から送ってもらう運用。
+            お客さんとの制作やりとりをここで返信。
           </div>
 
           <div class="chatbox" id="chatBox"></div>
@@ -352,7 +398,6 @@
     const SUPABASE_URL = "https://nnexyynjimfpdcqeuxgn.supabase.co";
     const SUPABASE_ANON_KEY =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5uZXh5eW5qaW1mcGRjcWV1eGduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0NDAxMzAsImV4cCI6MjA4MTAxNjEzMH0.ZWAsrtzHAf0A9wDAfXPUKTlwQ92G1KhgUWFAyLULl9c";
-
     const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // =====================
@@ -360,6 +405,10 @@
     // =====================
     let tickets = [];
     let currentTicket = null;
+
+    // notice selection
+    let currentNotices = [];       // list displayed
+    let selectedNoticeId = null;   // chosen notice id
 
     // =====================
     // Helpers
@@ -370,7 +419,6 @@
       el.style.display = "block";
       setTimeout(()=>{ el.style.display = "none"; }, 4000);
     }
-
     function escapeHtml(str){
       return (str ?? "").toString()
         .replaceAll("&","&amp;")
@@ -379,13 +427,9 @@
         .replaceAll('"',"&quot;")
         .replaceAll("'","&#039;");
     }
-
     function formatTime(iso){
-      try{
-        return new Date(iso).toLocaleString("ja-JP",{hour12:false});
-      }catch{ return ""; }
+      try{ return new Date(iso).toLocaleString("ja-JP",{hour12:false}); }catch{ return ""; }
     }
-
     function statusText(step){
       const map = {
         0: "ヒアリング入力待ち",
@@ -398,6 +442,11 @@
       };
       return map[step] ?? `進行：${step}`;
     }
+    function severityBadge(sev){
+      if (sev === 2) return "緊急";
+      if (sev === 1) return "重要";
+      return "通常";
+    }
 
     // =====================
     // Load tickets
@@ -407,7 +456,6 @@
         .from("tickets")
         .select("*")
         .order("created_at", { ascending: false });
-
       if (error) throw error;
       tickets = data || [];
       renderTicketList();
@@ -474,9 +522,13 @@
       document.getElementById("statusSelect").value = String(t.status_step ?? 0);
       document.getElementById("statusSaveMsg").textContent = "";
 
-      // load hearing / chat
+      // default notice target = ticket (チケット選択したら個別が多い想定)
+      document.getElementById("noticeTarget").value = "ticket";
+
+      // load hearing / chat / notices
       await loadHearing(t.id);
       await loadChat(t.id);
+      await refreshNotices(); // notice list
     }
 
     async function loadHearing(ticketId){
@@ -523,7 +575,6 @@
 
         if (error) throw error;
 
-        // state update
         currentTicket.status_step = newStep;
         msg.textContent = "更新した";
         setTimeout(()=>msg.textContent="", 2000);
@@ -537,8 +588,124 @@
     };
 
     // =====================
-    // Notice
+    // Notice list + editor
     // =====================
+    function clearNoticeSelection(){
+      selectedNoticeId = null;
+      document.querySelectorAll("#noticeList .nitem").forEach(el=>el.classList.remove("active"));
+      document.getElementById("updateNoticeBtn").disabled = true;
+      document.getElementById("disableSelectedNoticeBtn").disabled = true;
+      document.getElementById("noticeMsg").textContent = "";
+      // フォームは新規作成用にクリア
+      document.getElementById("noticeTitle").value = "";
+      document.getElementById("noticeBody").value = "";
+      document.getElementById("noticeSeverity").value = "0";
+    }
+
+    function renderNoticesList(){
+      const list = document.getElementById("noticeList");
+      list.innerHTML = "";
+
+      if (!currentNotices || currentNotices.length === 0){
+        const div = document.createElement("div");
+        div.className = "nitem";
+        div.style.cursor = "default";
+        div.innerHTML = `<div class="muted">投稿済みお知らせがありません</div>`;
+        list.appendChild(div);
+        return;
+      }
+
+      currentNotices
+        .sort((a,b)=> new Date(b.updated_at) - new Date(a.updated_at))
+        .forEach(n=>{
+          const div = document.createElement("div");
+          div.className = "nitem" + (selectedNoticeId === n.id ? " active" : "");
+          const tgt = (n.ticket_id == null) ? "全体" : "個別";
+          const sev = severityBadge(n.severity);
+          const title = (n.title || "").trim() || "お知らせ";
+          const time = formatTime(n.updated_at);
+          div.innerHTML = `
+            <div class="ntag">
+              <span class="nbadge">${escapeHtml(tgt)}</span>
+              <span class="nbadge">${escapeHtml(sev)}</span>
+              ${escapeHtml(title)}
+            </div>
+            <div class="nsub">更新：${escapeHtml(time)} ／ id:${n.id}</div>
+          `;
+          div.onclick = ()=>selectNotice(n.id);
+          list.appendChild(div);
+        });
+    }
+
+    async function refreshNotices(){
+      if (!currentTicket) return;
+
+      const msg = document.getElementById("noticeListMsg");
+      msg.textContent = "読み込み中…";
+
+      const target = document.getElementById("noticeTarget").value;
+
+      try{
+        let q = supa
+          .from("ticket_notices")
+          .select("*")
+          .eq("is_active", true);
+
+        if (target === "all"){
+          q = q.is("ticket_id", null);
+        } else {
+          q = q.eq("ticket_id", currentTicket.id);
+        }
+
+        const { data, error } = await q;
+        if (error) throw error;
+
+        currentNotices = data || [];
+        clearNoticeSelection(); // 選択はリセット（ズレ防止）
+        renderNoticesList();
+
+        msg.textContent = `表示：${currentNotices.length}件`;
+        setTimeout(()=>msg.textContent="", 2000);
+      }catch(e){
+        console.error(e);
+        msg.textContent = "失敗：" + (e?.message || e);
+      }
+    }
+
+    function selectNotice(id){
+      selectedNoticeId = id;
+      document.querySelectorAll("#noticeList .nitem").forEach(el=>el.classList.remove("active"));
+      // active class
+      const idx = currentNotices.findIndex(n=>n.id === id);
+      if (idx >= 0){
+        document.querySelectorAll("#noticeList .nitem")[idx]?.classList.add("active");
+      }
+
+      const n = currentNotices.find(n=>n.id === id);
+      if (!n) return;
+
+      // フォームへ反映（編集できる）
+      document.getElementById("noticeTarget").value = (n.ticket_id == null) ? "all" : "ticket";
+      document.getElementById("noticeSeverity").value = String(n.severity ?? 0);
+      document.getElementById("noticeTitle").value = n.title || "";
+      document.getElementById("noticeBody").value = n.body || "";
+
+      document.getElementById("updateNoticeBtn").disabled = false;
+      document.getElementById("disableSelectedNoticeBtn").disabled = false;
+
+      document.getElementById("noticeMsg").textContent = `選択中：id=${n.id}`;
+    }
+
+    document.getElementById("refreshNoticesBtn").onclick = refreshNotices;
+
+    document.getElementById("noticeTarget").addEventListener("change", async ()=>{
+      // 対象切替したら一覧も切替
+      if (currentTicket) await refreshNotices();
+    });
+
+    document.getElementById("clearNoticeSelectionBtn").onclick = clearNoticeSelection;
+
+    // 新規保存
     document.getElementById("saveNoticeBtn").onclick = async ()=>{
       if (!currentTicket) return;
 
@@ -569,12 +736,12 @@
         const { error } = await supa.from("ticket_notices").insert(payload);
         if (error) throw error;
 
-        msg.textContent = "保存した（マイページに反映される）";
+        msg.textContent = "保存した（マイページに反映）";
         setTimeout(()=>msg.textContent="", 2500);
 
-        // clear inputs a bit
-        document.getElementById("noticeTitle").value = "";
-        document.getElementById("noticeBody").value = "";
+        // クリアして一覧更新
+        clearNoticeSelection();
+        await refreshNotices();
       }catch(e){
         console.error(e);
         msg.textContent = "失敗：" + (e?.message || e);
@@ -583,10 +750,59 @@
       }
     };
 
-    document.getElementById("disableTicketNoticeBtn").onclick = async ()=>{
-      if (!currentTicket) return;
+    // 選択中を更新（編集保存）
+    document.getElementById("updateNoticeBtn").onclick = async ()=>{
+      if (!currentTicket || !selectedNoticeId) return;
 
-      const btn = document.getElementById("disableTicketNoticeBtn");
+      const btn = document.getElementById("updateNoticeBtn");
+      const msg = document.getElementById("noticeMsg");
+
+      const target = document.getElementById("noticeTarget").value;
+      const sev = Number(document.getElementById("noticeSeverity").value);
+      const title = document.getElementById("noticeTitle").value || "";
+      const body = document.getElementById("noticeBody").value || "";
+
+      if (!body.trim()){
+        msg.textContent = "本文は必須";
+        return;
+      }
+
+      btn.disabled = true;
+      msg.textContent = "更新中…";
+
+      try{
+        const payload = {
+          ticket_id: target === "ticket" ? currentTicket.id : null,
+          title,
+          body,
+          severity: sev
+          // is_active は触らない（基本trueのまま）
+        };
+
+        const { error } = await supa
+          .from("ticket_notices")
+          .update(payload)
+          .eq("id", selectedNoticeId);
+
+        if (error) throw error;
+
+        msg.textContent = "更新した";
+        setTimeout(()=>msg.textContent="", 2000);
+
+        await refreshNotices();
+      }catch(e){
+        console.error(e);
+        msg.textContent = "失敗：" + (e?.message || e);
+      }finally{
+        btn.disabled = false;
+      }
+    };
+
+    // 選択中を非表示（個別に消す）
+    document.getElementById("disableSelectedNoticeBtn").onclick = async ()=>{
+      if (!currentTicket || !selectedNoticeId) return;
+
+      const btn = document.getElementById("disableSelectedNoticeBtn");
       const msg = document.getElementById("noticeMsg");
 
       btn.disabled = true;
@@ -596,12 +812,14 @@
         const { error } = await supa
           .from("ticket_notices")
           .update({ is_active:false })
-          .eq("ticket_id", currentTicket.id);
+          .eq("id", selectedNoticeId);
 
         if (error) throw error;
 
-        msg.textContent = "このチケット向けお知らせを非表示にした";
-        setTimeout(()=>msg.textContent="", 2500);
+        msg.textContent = "非表示にした（履歴は残る）";
+        setTimeout(()=>msg.textContent="", 2200);
+
+        await refreshNotices();
       }catch(e){
         console.error(e);
         msg.textContent = "失敗：" + (e?.message || e);
