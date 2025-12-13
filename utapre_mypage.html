@@ -1,275 +1,960 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>うたプレ マイページ</title>
+<style>
+  :root{
+    --bg:#f6f7fb;
+    --card:#fff;
+    --text:#111827;
+    --muted:#6b7280;
+    --border:#e5e7eb;
+    --shadow: 0 10px 30px rgba(0,0,0,.06);
+    --radius:16px;
+    --accent:#111827;
+  }
 
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
+    font-size:16px;
+    line-height:1.65;
+  }
+
+  a{ color: inherit; }
+  .wrap{
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 18px 14px 48px;
+  }
+
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom: 12px;
+  }
+
+  .title{
+    font-size: 18px;
+    font-weight: 800;
+    margin: 0;
+  }
+
+  .sub{
+    color:var(--muted);
+    font-size: 13px;
+    margin: 2px 0 0;
+  }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:16px;
+    margin: 14px 0;
+  }
+
+  .card h2{
+    margin:0 0 10px;
+    font-size: 14px;
+    color: var(--muted);
+    letter-spacing: .02em;
+  }
+
+  .btn{
+    border:1px solid var(--border);
+    background:var(--accent);
+    color:#fff;
+    border-radius: 12px;
+    padding:10px 14px;
+    font-weight:800;
+    cursor:pointer;
+  }
+  .btn:active{ transform: translateY(1px); }
+
+  .btnSub{
+    border:1px solid var(--border);
+    background:#fff;
+    color:var(--text);
+    border-radius: 12px;
+    padding:10px 14px;
+    font-weight:800;
+    cursor:pointer;
+  }
+
+  .input, textarea, select{
+    width:100%;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:10px 12px;
+    font-size:16px;
+    outline:none;
+    background:#fff;
+    box-sizing:border-box;
+  }
+  textarea{ min-height: 110px; resize: vertical; }
+  .input:focus, textarea:focus, select:focus{
+    border-color:#c7d2fe;
+    box-shadow: 0 0 0 4px rgba(99,102,241,.15);
+  }
+
+  .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .row > * { flex: 1; min-width: 220px; }
+
+  /* 進行状況（目立たせる） */
+  .statusPill{
+    display:inline-flex;
+    gap:8px;
+    align-items:center;
+    padding:8px 12px;
+    border-radius: 999px;
+    border:1px solid var(--border);
+    background:#fff;
+    font-weight:800;
+  }
+  .dot{ width:10px; height:10px; border-radius:999px; background:#22c55e; display:inline-block; }
+  .muted{ color:var(--muted); font-size: 13px; }
+
+  /* お知らせ */
+  .notice{
+    border:1px solid var(--border);
+    border-radius: 14px;
+    padding:12px 12px;
+    margin: 10px 0;
+    background:#fff;
+    border-left: 6px solid #d1d5db;
+  }
+  .notice.s1{ border-left-color:#f59e0b; }
+  .notice.s2{ border-left-color:#ef4444; }
+  .noticeTitle{ font-weight:900; margin:0 0 4px; }
+  .noticeBody{ margin:0; color: var(--text); }
+  .tag{
+    display:inline-flex;
+    align-items:center;
+    padding: 3px 8px;
+    border-radius: 999px;
+    border:1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+    margin-left: 8px;
+  }
+
+  /* チャット */
+  .chatBox{
+    height: 380px;
+    overflow:auto;
+    border:1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px;
+    background:#fafafa;
+  }
+  .chatRow{ display:flex; gap:10px; margin: 8px 0; }
+  .chatRow.user{ justify-content:flex-end; }
+  .bubble{
+    max-width: 78%;
+    padding:10px 12px;
+    border-radius:14px;
+    border:1px solid var(--border);
+    background:#fff;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .chatRow.user .bubble{
+    background:var(--accent);
+    color:#fff;
+    border-color:var(--accent);
+  }
+  .meta{ font-size:12px; color:var(--muted); margin-top:6px; }
+  .attach{
+    display:inline-flex;
+    gap:8px;
+    align-items:center;
+    padding:8px 10px;
+    border-radius: 12px;
+    border:1px solid var(--border);
+    background:#fff;
+    text-decoration:none;
+    font-weight:800;
+  }
+
+  /* 送信エリア */
+  .chatComposer{
+    display:flex;
+    gap:10px;
+    margin-top: 10px;
+    align-items:flex-end;
+    flex-wrap:wrap;
+  }
+  .chatComposer .grow{ flex: 1; min-width: 240px; }
+</style>
+<head>
+  <meta charset="UTF-8" />
+  <title>うたプレ マイページ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
   <style>
     :root{
-      --bg:#f6f7fb;
+      --bg:#f6f6f9;
       --card:#fff;
-      --text:#111827;
-      --muted:#6b7280;
-      --border:#e5e7eb;
-      --shadow:0 10px 30px rgba(0,0,0,.06);
-      --radius:16px;
-      --accent:#111827;
-      --good:#22c55e;
-      --warn:#f59e0b;
-      --bad:#ef4444;
+      --text:#222;
+      --sub:#666;
+      --line:#e7e7ee;
+      --accent:#ff6fb5;
+      --accent2:#ffc36f;
+      --ok:#24a148;
+      --ng:#e11d48;
+      --radius:18px;
+      --shadow:0 10px 26px rgba(0,0,0,.08);
     }
-
+    *{box-sizing:border-box}
     body{
       margin:0;
-      background:var(--bg);
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
       color:var(--text);
-      font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
-      font-size:16px;
-      line-height:1.65;
+      background: radial-gradient(circle at top, #ffeef7 0, var(--bg) 45%, var(--bg) 100%);
+      min-height:100vh;
     }
-
-    .wrap{
-      max-width:980px;
-      margin:0 auto;
-      padding:18px 14px 48px;
+    .wrap{max-width:980px;margin:0 auto;padding:18px 14px 40px}
+    header{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      margin-bottom:14px;
     }
-
-    .topbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-      flex-wrap:wrap;
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{
+      width:34px;height:34px;border-radius:14px;
+      background:conic-gradient(from 180deg, #ff6fb5, #ffc36f, #6fb7ff, #ff6fb5);
+      box-shadow:0 10px 22px rgba(0,0,0,.18);
+      display:flex;align-items:center;justify-content:center;
+      color:#fff;font-weight:900;
     }
-
-    .title{ font-size:18px; font-weight:900; margin:0; }
-    .sub{ font-size:13px; color:var(--muted); margin-top:4px; }
-
+    .title{font-weight:800}
+    .sub{color:var(--sub);font-size:12px}
     .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 12px;
-      border-radius:999px;
-      border:1px solid var(--border);
-      background:#fff;
-      font-weight:900;
+      font-size:11px;color:var(--sub);
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.8);
+      padding:6px 10px;border-radius:999px;
+      user-select:text;
     }
-    .dot{ width:10px; height:10px; border-radius:50%; background:var(--good); }
+
+    .grid{display:grid;grid-template-columns: 1.1fr .9fr;gap:14px}
+    @media (max-width:920px){ .grid{grid-template-columns:1fr} }
 
     .card{
       background:var(--card);
-      border:1px solid var(--border);
+      border:1px solid rgba(255,255,255,.9);
       border-radius:var(--radius);
       box-shadow:var(--shadow);
-      padding:16px;
-      margin:14px 0;
+      padding:14px 14px;
     }
-
-    h2{
-      font-size:14px;
-      color:var(--muted);
-      margin:0 0 10px;
+    .card h2{
+      margin:0 0 10px 0;
+      font-size:15px;
     }
-
-    .muted{ font-size:13px; color:var(--muted); }
-
-    /* notices */
-    .notice{
-      border:1px solid var(--border);
-      border-left:6px solid #d1d5db;
-      border-radius:14px;
-      padding:12px;
-      margin:10px 0;
-      background:#fff;
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .kv{display:grid;grid-template-columns: 140px 1fr;gap:8px; font-size:13px; padding:6px 0;border-bottom:1px dashed var(--line)}
+    .kv:last-child{border-bottom:none}
+    .k{color:var(--sub)}
+    .v{font-weight:600}
+    .badge{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 10px; border-radius:999px;
+      font-size:12px; border:1px solid var(--line);
+      background:#fafafe;
     }
-    .notice.s1{ border-left-color:var(--warn); }
-    .notice.s2{ border-left-color:var(--bad); }
-    .noticeTitle{ font-weight:900; margin-bottom:4px; }
-
-    /* chat */
-    .chatBox{
-      height:420px;
-      overflow:auto;
-      border:1px solid var(--border);
-      border-radius:14px;
-      padding:12px;
-      background:#fafafa;
-    }
-    .chatRow{ display:flex; margin:8px 0; }
-    .chatRow.user{ justify-content:flex-end; }
-    .bubble{
-      max-width:78%;
-      padding:10px 12px;
-      border-radius:14px;
-      border:1px solid var(--border);
-      background:#fff;
-      white-space:pre-wrap;
-    }
-    .chatRow.user .bubble{
-      background:var(--accent);
-      color:#fff;
-      border-color:var(--accent);
-    }
-    .meta{ font-size:12px; color:var(--muted); margin-top:6px; }
-
-    textarea,input{
-      width:100%;
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:10px;
-      font-size:16px;
-      box-sizing:border-box;
-    }
+    .dot{width:8px;height:8px;border-radius:999px;background:#bbb}
+    .dot.ok{background:var(--ok)}
+    .dot.ng{background:var(--ng)}
+    .dot.wait{background:#f59e0b}
 
     .btn{
-      border:1px solid var(--border);
-      background:var(--accent);
-      color:#fff;
-      border-radius:12px;
-      padding:10px 14px;
-      font-weight:900;
-      cursor:pointer;
+      border:none; cursor:pointer;
+      border-radius:999px;
+      padding:9px 14px;
+      font-size:12px; font-weight:700;
+      display:inline-flex; align-items:center; gap:8px;
     }
+    .btn.primary{
+      color:#fff;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));
+      box-shadow:0 8px 18px rgba(0,0,0,.16);
+    }
+    .btn.ghost{
+      color:var(--sub);
+      background:rgba(255,255,255,.9);
+      border:1px solid var(--line);
+    }
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+
+    .info{color:var(--sub);font-size:12px;line-height:1.55}
+    .muted{color:var(--sub)}
+    .alert{
+      padding:10px 12px;border-radius:14px;
+      border:1px solid #ffd6e7;
+      background:#fff5fa;
+      font-size:12px; line-height:1.55;
+    }
+
+    /* hearing */
+    .form{display:grid; gap:10px;}
+    .field label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+    .field label span{font-size:12px;font-weight:700}
+    .field label small{font-size:11px;color:var(--sub)}
+    input[type="text"], textarea, select{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:9px 10px;
+      font-size:13px;
+      outline:none;
+      background:rgba(255,255,255,.95);
+    }
+    textarea{min-height:78px;resize:vertical}
+    input:focus, textarea:focus, select:focus{
+      border-color:var(--accent);
+      box-shadow:0 0 0 1px rgba(255,111,181,.22);
+    }
+    .small{font-size:11px;color:var(--sub)}
+    .statusline{font-size:12px;color:var(--sub);min-height:18px}
+
+    /* notice */
+    .noticeItem{padding:10px 0;border-bottom:1px dashed var(--line)}
+    .noticeItem:last-child{border-bottom:none}
+    .noticeTitle{font-weight:900;margin-bottom:4px}
+    .noticeMeta{margin-top:6px;font-size:11px;color:var(--sub)}
+
+    /* chat */
+    .chatbox{
+      height:360px;
+      overflow:auto;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px;
+      background:#fafafe;
+    }
+    .msg{display:flex;margin:8px 0;gap:8px}
+    .msg.me{justify-content:flex-end}
+    .bubble{
+      max-width:82%;
+      padding:9px 10px;
+      border-radius:14px;
+      border:1px solid #ececf5;
+      background:#fff;
+      font-size:13px;
+      line-height:1.5;
+      word-break:break-word;
+    }
+    .msg.me .bubble{
+      background:#fff7fb;
+      border-color:#ffd6e7;
+    }
+    .meta{font-size:11px;color:var(--sub);margin-top:4px}
+    .filelink{
+      display:inline-block;
+      margin-top:6px;
+      font-size:12px;
+      color:#0b63ce;
+      text-decoration:underline;
+      word-break:break-all;
+    }
+    .chatinput{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap:10px;
+      margin-top:10px;
+      align-items:end;
+    }
+    .chatinput textarea{min-height:52px}
+    .uploader{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px}
+    input[type="file"]{font-size:12px}
   </style>
 </head>
 
 <body>
-<div class="wrap">
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo">U</div>
+        <div>
+          <div class="title">うたプレ マイページ</div>
+          <div class="sub">シリアル入力でログイン済みのチケット専用ページ</div>
+        </div>
+      </div>
+      <div class="pill" id="tokenPill">token: -</div>
+    </header>
 
-  <div class="topbar">
-    <div>
-      <p class="title">うたプレ マイページ</p>
-      <p class="sub">制作状況・お知らせ・チャット</p>
+    <div id="topAlert" class="alert" style="display:none;"></div>
+
+    <!-- お知らせ欄 -->
+    <div id="noticeArea" class="card" style="margin-bottom:14px; display:none;">
+      <h2>お知らせ</h2>
+      <div id="noticeContent" class="info"></div>
     </div>
-    <div class="pill">
-      <span class="dot"></span>
-      <span id="statusText">読み込み中…</span>
+
+    <div class="grid">
+      <!-- LEFT -->
+      <div class="card">
+        <h2>チケット情報</h2>
+        <div class="row" style="margin-bottom:10px;">
+          <span class="badge"><span class="dot wait" id="statusDot"></span><span id="statusText">読み込み中…</span></span>
+          <span class="badge"><span class="muted">シリアル</span>&nbsp;<span id="serialText" style="font-weight:700">-</span></span>
+        </div>
+
+        <div id="ticketInfo">
+          <div class="kv"><div class="k">お名前</div><div class="v" id="userName">-</div></div>
+          <div class="kv"><div class="k">プレゼント</div><div class="v" id="giftFrom">-</div></div>
+          <div class="kv"><div class="k">プラン</div><div class="v" id="planName">-</div></div>
+          <div class="kv"><div class="k">納期目安</div><div class="v" id="leadTime">-</div></div>
+          <div class="kv"><div class="k">内容</div><div class="v" id="planDesc">-</div></div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <h2>ヒアリングシート</h2>
+        <div class="info" style="margin-bottom:10px;">
+          <b>一時保存</b>はこの端末内（下書き）に保存。<b>送信</b>すると運営に提出されます。<br>
+          <b>送信後は内容を変更できません</b>（受領後の改ざん防止）。
+        </div>
+
+        <div id="hearingForm" class="form">
+          <div class="field">
+            <label><span>曲名（原曲）</span><small>例：曲名 / アーティスト</small></label>
+            <input type="text" id="hearing_song" name="hearing_song" placeholder="例）○○ / ○○" />
+          </div>
+
+          <div class="field">
+            <label><span>使用する動画URL</span><small>YouTube等（任意）</small></label>
+            <input type="text" id="hearing_video_url" name="hearing_video_url" placeholder="https://..." />
+          </div>
+
+          <div class="field">
+            <label><span>素材の有無</span><small>ボーカル / オケ / ハモリ など</small></label>
+            <textarea id="hearing_materials" name="hearing_materials" placeholder="例）ボーカルWAVあり、オケあり、ハモリなし"></textarea>
+          </div>
+
+          <div class="field">
+            <label><span>希望・こだわり</span><small>雰囲気 / 参考音源 / NG事項</small></label>
+            <textarea id="hearing_requests" name="hearing_requests" placeholder="例）明るめ、低音強め、ピッチ自然め…"></textarea>
+          </div>
+
+          <div class="field">
+            <label><span>公開予定</span><small>任意</small></label>
+            <select id="hearing_publish" name="hearing_publish">
+              <option value="">未定</option>
+              <option value="ok">公開OK</option>
+              <option value="ng">非公開希望</option>
+              <option value="ask">要相談</option>
+            </select>
+          </div>
+
+          <div class="row" style="margin-top:6px;">
+            <button type="button" class="btn ghost" id="hearingSaveDraftBtn">一時保存（下書き）</button>
+            <button type="button" class="btn primary" id="hearingSubmitBtn">送信（運営に提出）</button>
+          </div>
+          <div class="statusline" id="hearingSubmitStatus"></div>
+          <div class="small">※「送信」した内容はロックされ、運営が確認して制作がスタートします。</div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="card">
+        <h2>チャット（運営とやりとり）</h2>
+        <div class="info" style="margin-bottom:10px;">
+          <div style="font-weight:800; margin-bottom:4px;">制作に関するやりとり</div>
+          うたプレ運営（制作者）とのやりとりを残しておけるチャットです。<br>
+          追加のご要望や、修正してほしいポイントがあればこちらからお送りください。
+          <div style="margin-top:6px;">ファイルも送れます（画像/PDF/音声など）。日本語ファイル名もOK。</div>
+        </div>
+
+        <div class="chatbox" id="chatBox"></div>
+
+        <div class="chatinput">
+          <textarea id="chatText" placeholder="メッセージを書いて送信"></textarea>
+          <button class="btn primary" id="sendBtn">送信</button>
+        </div>
+
+        <div class="uploader">
+          <input type="file" id="fileInput" />
+          <button class="btn ghost" id="sendFileBtn">ファイル送信</button>
+          <span class="statusline" id="fileStatus" style="min-height:auto;"></span>
+        </div>
+
+        <div class="small" style="margin-top:8px;">
+          送信できないときは、回線が不安定 or ファイルが大きすぎる可能性があります。
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="card">
-    <h2>お知らせ</h2>
-    <div id="noticeList" class="muted">読み込み中…</div>
-  </div>
+  <script>
+    // =====================
+    // Supabase settings
+    // =====================
+    const SUPABASE_URL = "https://nnexyynjimfpdcqeuxgn.supabase.co";
+    const SUPABASE_ANON_KEY =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5uZXh5eW5qaW1mcGRjcWV1eGduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0NDAxMzAsImV4cCI6MjA4MTAxNjEzMH0.ZWAsrtzHAf0A9wDAfXPUKTlwQ92G1KhgUWFAyLULl9c";
 
-  <div class="card">
-    <h2>進行状況</h2>
-    <div id="progressArea" class="muted">読み込み中…</div>
-  </div>
+    const BUCKET_NAME = "ticket-chat-files";
 
-  <div class="card">
-    <h2>チャット</h2>
-    <div id="chatMessages" class="chatBox"></div>
+    const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    <textarea id="chatInput" placeholder="メッセージを書く"></textarea>
-    <div style="height:8px"></div>
-    <button id="sendBtn" class="btn">送信</button>
-
-    <div id="chatState" class="muted" style="margin-top:6px"></div>
-  </div>
-
-</div>
-
-<script>
-  // ★ 反映済み Supabase 情報
-  const SUPABASE_URL = "https://nnexyynjimfpdcqeuxgn.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_6bOa3KOYxSKY7jindPuLmQ_snmU9_YC";
-
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  const qs = new URLSearchParams(location.search);
-  const token = qs.get("token");
-
-  const el = id => document.getElementById(id);
-
-  function esc(s){
-    return (s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
-  }
-
-  let ticketId = null;
-
-  async function loadTicket(){
-    const { data } = await supabase
-      .from("tickets")
-      .select("id,status_step")
-      .eq("access_token", token)
-      .single();
-
-    ticketId = data.id;
-    el("statusText").textContent = "ステータス：" + data.status_step;
-    el("progressArea").textContent = "現在の工程：" + data.status_step;
-  }
-
-  async function loadNotices(){
-    const { data } = await supabase
-      .from("ticket_notices")
-      .select("*")
-      .eq("is_active", true)
-      .or(`ticket_id.is.null,ticket_id.eq.${ticketId}`)
-      .order("created_at", { ascending:false });
-
-    if (!data.length){
-      el("noticeList").textContent = "現在お知らせはありません。";
-      return;
+    // =====================
+    // Helpers
+    // =====================
+    function getQueryParam(name){
+      const url = new URL(window.location.href);
+      return url.searchParams.get(name);
+    }
+    function setTopAlert(msg){
+      const el = document.getElementById("topAlert");
+      el.style.display = "block";
+      el.textContent = msg;
+    }
+    function escapeHtml(str){
+      return (str ?? "").toString()
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+    function formatTime(iso){
+      try{
+        const d = new Date(iso);
+        return d.toLocaleString("ja-JP", { hour12:false });
+      }catch{ return ""; }
     }
 
-    el("noticeList").innerHTML = data.map(n => `
-      <div class="notice s${n.severity}">
-        <div class="noticeTitle">${esc(n.title)}</div>
-        <div>${esc(n.body)}</div>
-      </div>
-    `).join("");
-  }
+    // Storageキーを安全に（日本語OK）
+    function safeFileName(original){
+      const enc = encodeURIComponent(original).replaceAll("%", "_");
+      if (enc.length > 180){
+        return enc.slice(0,120) + "__" + enc.slice(-50);
+      }
+      return enc;
+    }
 
-  async function loadMessages(){
-    const { data } = await supabase
-      .from("ticket_messages")
-      .select("*")
-      .eq("ticket_id", ticketId)
-      .order("created_at");
+    // 進行状況（0〜6）
+    function statusLabel(step){
+      const map = {
+        0: "ヒアリング入力待ち",
+        1: "ヒアリング送信済み（確認中）",
+        2: "制作準備中",
+        3: "制作中",
+        4: "確認・修正対応中",
+        5: "納品準備中",
+        6: "納品済み"
+      };
+      return map[step] ?? `進行：${step}`;
+    }
 
-    el("chatMessages").innerHTML = data.map(m => {
-      const role = m.sender ?? m.from_role;
-      return `
-        <div class="chatRow ${role === "user" ? "user":""}">
-          <div class="bubble">
-            ${esc(m.message)}
-            <div class="meta">${role}</div>
+    function setStatus(step){
+      const dot = document.getElementById("statusDot");
+      const txt = document.getElementById("statusText");
+      txt.textContent = statusLabel(step);
+
+      dot.classList.remove("ok","ng","wait");
+      if (step === 6) dot.classList.add("ok");
+      else dot.classList.add("wait");
+    }
+
+    // =====================
+    // Notices
+    // =====================
+    function severityBadge(sev){
+      if (sev === 2) return "【緊急】";
+      if (sev === 1) return "【重要】";
+      return "";
+    }
+
+    function showNotices(notices){
+      const area = document.getElementById("noticeArea");
+      const content = document.getElementById("noticeContent");
+      if (!notices || notices.length === 0) return;
+
+      notices.sort((a,b)=> new Date(b.updated_at) - new Date(a.updated_at));
+
+      content.innerHTML = notices.map(n=>{
+        const badge = severityBadge(n.severity);
+        const title = (n.title || "").trim() || "お知らせ";
+        const body = (n.body || "").trim().replaceAll("\n","<br>");
+        const time = n.updated_at ? new Date(n.updated_at).toLocaleString("ja-JP",{hour12:false}) : "";
+        return `
+          <div class="noticeItem">
+            <div class="noticeTitle">${escapeHtml(badge)} ${escapeHtml(title)}</div>
+            <div>${body}</div>
+            <div class="noticeMeta">更新：${escapeHtml(time)}</div>
           </div>
-        </div>
-      `;
-    }).join("");
+        `;
+      }).join("");
 
-    el("chatMessages").scrollTop = el("chatMessages").scrollHeight;
-  }
+      area.style.display = "block";
+    }
 
-  async function sendMessage(){
-    const text = el("chatInput").value.trim();
-    if (!text) return;
+    async function loadNoticesForTicket(ticketId){
+      const { data, error } = await supa
+        .from("ticket_notices")
+        .select("*")
+        .eq("is_active", true)
+        .or(`ticket_id.is.null,ticket_id.eq.${ticketId}`);
 
-    await supabase.from("ticket_messages").insert([{
-      ticket_id: ticketId,
-      sender: "user",
-      from_role: "user",
-      message: text
-    }]);
+      if (error) throw error;
+      return data || [];
+    }
 
-    el("chatInput").value = "";
-    loadMessages();
-  }
+    // =====================
+    // Hearing (draft + submit + lock)
+    // =====================
+    function collectHearingData(formEl) {
+      const data = {};
+      const elements = formEl.querySelectorAll("input, textarea, select");
 
-  el("sendBtn").onclick = sendMessage;
+      elements.forEach((el) => {
+        const key = el.name || el.id;
+        if (!key) return;
 
-  (async ()=>{
-    await loadTicket();
-    await loadNotices();
-    await loadMessages();
-  })();
-</script>
+        if (el.type === "password") return;
+
+        if (el.type === "checkbox") {
+          if (!data[key]) data[key] = [];
+          if (el.checked) data[key].push(el.value || true);
+          return;
+        }
+
+        if (el.type === "radio") {
+          if (el.checked) data[key] = el.value;
+          return;
+        }
+
+        data[key] = el.value;
+      });
+
+      return data;
+    }
+
+    function saveHearingDraft(ticketId, hearingData) {
+      const key = `utapre_hearing_draft_ticket_${ticketId}`;
+      localStorage.setItem(key, JSON.stringify({ savedAt: Date.now(), hearingData }));
+    }
+
+    function loadHearingDraft(ticketId) {
+      const key = `utapre_hearing_draft_ticket_${ticketId}`;
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+      try { return JSON.parse(raw); } catch { return null; }
+    }
+
+    function clearHearingDraft(ticketId) {
+      const key = `utapre_hearing_draft_ticket_${ticketId}`;
+      localStorage.removeItem(key);
+    }
+
+    function applyHearingToForm(formEl, hearingData) {
+      if (!hearingData) return;
+
+      Object.entries(hearingData).forEach(([key, val]) => {
+        const els = formEl.querySelectorAll(`[name="${key}"], #${CSS.escape(key)}`);
+        if (!els || els.length === 0) return;
+
+        els.forEach((el) => {
+          if (el.type === "checkbox") {
+            const arr = Array.isArray(val) ? val : [val];
+            el.checked = arr.includes(el.value) || (el.value === "" && arr.includes(true));
+          } else if (el.type === "radio") {
+            el.checked = el.value === val;
+          } else {
+            el.value = val ?? "";
+          }
+        });
+      });
+    }
+
+    async function loadSubmittedHearing(ticketId) {
+      const { data, error } = await supa
+        .from("ticket_hearings")
+        .select("*")
+        .eq("ticket_id", ticketId)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    }
+
+    function lockHearingForm(formEl, submittedAt) {
+      formEl.querySelectorAll("input, textarea, select").forEach((el) => {
+        el.disabled = true;
+      });
+
+      const saveBtn = document.getElementById("hearingSaveDraftBtn");
+      const submitBtn = document.getElementById("hearingSubmitBtn");
+      if (saveBtn) saveBtn.disabled = true;
+      if (submitBtn) submitBtn.disabled = true;
+
+      const statusEl = document.getElementById("hearingSubmitStatus");
+      if (statusEl) {
+        const t = submittedAt ? new Date(submittedAt).toLocaleString("ja-JP", { hour12:false }) : "";
+        statusEl.textContent = t ? `送信済み（${t}）※内容は変更できません` : "送信済み ※内容は変更できません";
+      }
+    }
+
+    async function submitHearing(ticketId, hearingData) {
+      const nowIso = new Date().toISOString();
+      const payload = {
+        ticket_id: ticketId,
+        hearing_data: hearingData,
+        submitted_at: nowIso,
+        updated_at: nowIso,
+      };
+
+      const { data, error } = await supa
+        .from("ticket_hearings")
+        .upsert(payload, { onConflict: "ticket_id" })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
+
+    // =====================
+    // Chat
+    // =====================
+    function renderMessages(list){
+      const box = document.getElementById("chatBox");
+      box.innerHTML = "";
+
+      list.forEach(m => {
+        const isMe = (m.sender === "user");
+        const wrap = document.createElement("div");
+        wrap.className = "msg" + (isMe ? " me" : "");
+
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+
+        const body = document.createElement("div");
+        body.innerHTML = escapeHtml(m.message || "").replaceAll("\n","<br>");
+        bubble.appendChild(body);
+
+        if (m.file_url){
+          const a = document.createElement("a");
+          a.className = "filelink";
+          a.href = m.file_url;
+          a.target = "_blank";
+          a.rel = "noreferrer";
+          a.textContent = "添付ファイルを開く";
+          bubble.appendChild(a);
+        }
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.textContent = `${m.sender ?? ""} ・ ${formatTime(m.created_at)}`;
+        bubble.appendChild(meta);
+
+        wrap.appendChild(bubble);
+        box.appendChild(wrap);
+      });
+
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function loadMessages(ticketId){
+      const { data, error } = await supa
+        .from("ticket_messages")
+        .select("*")
+        .eq("ticket_id", ticketId)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    }
+
+    async function sendMessage(ticketId, sender, message, fileUrl){
+      const payload = {
+        ticket_id: ticketId,
+        sender,
+        message: message || "",
+        file_url: fileUrl || null
+      };
+
+      const { error } = await supa.from("ticket_messages").insert(payload);
+      if (error) throw error;
+    }
+
+    async function uploadFile(ticketId, file){
+      const ts = Date.now();
+      const safe = safeFileName(file.name || "file");
+      const path = `${ticketId}/file_${ts}_${safe}`;
+
+      const { error: upErr } = await supa.storage
+        .from(BUCKET_NAME)
+        .upload(path, file, { upsert: false });
+
+      if (upErr) throw upErr;
+
+      const { data: pub } = supa.storage.from(BUCKET_NAME).getPublicUrl(path);
+      return pub?.publicUrl;
+    }
+
+    // =====================
+    // Main
+    // =====================
+    let currentTicket = null;
+    let refreshTimer = null;
+
+    async function loadTicketByToken(token){
+      const { data, error } = await supa
+        .from("tickets")
+        .select("*")
+        .eq("access_token", token)
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
+
+    function fillTicketUI(t){
+      document.getElementById("serialText").textContent = t.serial || "-";
+      document.getElementById("userName").textContent = t.user_name || "-";
+      document.getElementById("giftFrom").textContent = t.gift_from || "（なし）";
+      document.getElementById("planName").textContent = t.plan_name || "-";
+      document.getElementById("leadTime").textContent = t.plan_lead_time || "（未設定）";
+      document.getElementById("planDesc").textContent = t.plan_description || "（未設定）";
+      setStatus(t.status_step ?? 0);
+    }
+
+    async function init(){
+      const token = getQueryParam("token");
+      document.getElementById("tokenPill").textContent = "token: " + (token || "-");
+
+      if (!token){
+        setTopAlert("このページは token が必要です。シリアル入力ページ（use_ticket.html）からアクセスしてください。");
+        return;
+      }
+
+      try{
+        currentTicket = await loadTicketByToken(token);
+        fillTicketUI(currentTicket);
+
+        // お知らせ読み込み（全体＋個別）
+        try{
+          const notices = await loadNoticesForTicket(currentTicket.id);
+          showNotices(notices);
+        }catch(e){
+          console.error("notice load error", e);
+        }
+
+        // hearing
+        const formEl = document.getElementById("hearingForm");
+        const saveBtn = document.getElementById("hearingSaveDraftBtn");
+        const submitBtn = document.getElementById("hearingSubmitBtn");
+        const statusEl = document.getElementById("hearingSubmitStatus");
+
+        const submitted = await loadSubmittedHearing(currentTicket.id);
+        if (submitted?.hearing_data) {
+          applyHearingToForm(formEl, submitted.hearing_data);
+          lockHearingForm(formEl, submitted.submitted_at);
+        } else {
+          const draft = loadHearingDraft(currentTicket.id);
+          if (draft?.hearingData) applyHearingToForm(formEl, draft.hearingData);
+
+          saveBtn.onclick = () => {
+            const hearingData = collectHearingData(formEl);
+            saveHearingDraft(currentTicket.id, hearingData);
+            statusEl.textContent = "下書きを保存した";
+            setTimeout(() => statusEl.textContent = "", 2000);
+          };
+
+          submitBtn.onclick = async () => {
+            try{
+              submitBtn.disabled = true;
+              saveBtn.disabled = true;
+              statusEl.textContent = "送信中…";
+
+              const hearingData = collectHearingData(formEl);
+              const saved = await submitHearing(currentTicket.id, hearingData);
+
+              clearHearingDraft(currentTicket.id);
+              applyHearingToForm(formEl, saved.hearing_data);
+              lockHearingForm(formEl, saved.submitted_at);
+            }catch(e){
+              console.error(e);
+              statusEl.textContent = "送信失敗：" + (e?.message || e);
+              submitBtn.disabled = false;
+              saveBtn.disabled = false;
+            }
+          };
+        }
+
+        // chat refresh
+        const doRefresh = async () => {
+          const list = await loadMessages(currentTicket.id);
+          renderMessages(list);
+        };
+        await doRefresh();
+        refreshTimer = setInterval(doRefresh, 6000);
+
+        // send text
+        const sendBtn = document.getElementById("sendBtn");
+        const chatText = document.getElementById("chatText");
+
+        sendBtn.onclick = async () => {
+          const text = chatText.value.trim();
+          if (!text) return;
+
+          sendBtn.disabled = true;
+          try{
+            await sendMessage(currentTicket.id, "user", text, null);
+            chatText.value = "";
+            await doRefresh();
+          }catch(e){
+            console.error(e);
+            setTopAlert("送信に失敗：" + (e?.message || e));
+          }finally{
+            sendBtn.disabled = false;
+          }
+        };
+
+        // send file
+        const fileInput = document.getElementById("fileInput");
+        const sendFileBtn = document.getElementById("sendFileBtn");
+        const fileStatus = document.getElementById("fileStatus");
+
+        sendFileBtn.onclick = async () => {
+          const file = fileInput.files?.[0];
+          if (!file){
+            fileStatus.textContent = "ファイルを選んでね";
+            setTimeout(() => fileStatus.textContent = "", 2000);
+            return;
+          }
+
+          sendFileBtn.disabled = true;
+          fileStatus.textContent = "アップロード中…";
+          try{
+            const url = await uploadFile(currentTicket.id, file);
+            await sendMessage(currentTicket.id, "user", `ファイル送信：${file.name}`, url);
+            fileInput.value = "";
+            fileStatus.textContent = "送信した";
+            setTimeout(() => fileStatus.textContent = "", 2000);
+            await doRefresh();
+          }catch(e){
+            console.error(e);
+            fileStatus.textContent = "失敗：" + (e?.message || e);
+          }finally{
+            sendFileBtn.disabled = false;
+          }
+        };
+
+      }catch(e){
+        console.error(e);
+        setTopAlert("読み込みに失敗しました。tokenが正しいか、Supabase設定を確認してください。");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
+  </script>
 </body>
 </html>
